@@ -1,10 +1,18 @@
-// Import core React features
-import { createRoot } from 'react-dom/client';
+// Import React
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 
-// Import CSS
-import 'bootstrap/dist/css/bootstrap.min.css';
+// Import Tailwind CSS
+import "./styles/index.css";
 
-// Import components
-import App from './App';
+// Router
+import RouterCustom from "./routers/RouterCustom";
 
-createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <RouterCustom />
+    </BrowserRouter>
+  </React.StrictMode>
+);
