@@ -99,31 +99,7 @@ Dự án sử dụng kiến trúc **Backend API (Laravel)** kết hợp **Fronte
 
 ---
 
-## Cấu trúc Frontend (React)
-
 ```bash
-src/
- ├── components/
- │   ├── Header.jsx
- │   ├── Footer.jsx
- │   └── Sidebar.jsx
- ├── layouts/
- │   ├── MasterLayout.jsx
- │   └── AdminLayout.jsx
- ├── pages/
- │   ├── home/
- │   │   └── HomePage.jsx
- │   ├── auth/
- │   ├── admin/
- │   ├── agent/
- │   └── user/
- ├── routers/
- │   └── RouterCustom.jsx
- ├── context/
- │   └── AuthContext.jsx
- ├── styles/
- │   └── index.css
- └── main.jsx
 ```
 
 ---
