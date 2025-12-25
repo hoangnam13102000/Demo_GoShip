@@ -1,9 +1,10 @@
 # Courier Services Management System
 
-]([https://laravel.com](https://laravel.com))
-[![React](https://img.shields.io/badge/React-^18.x-61DAFB?style=for-the-badge\&logo=react)](https://reactjs.org/)
+[![Laravel](https://img.shields.io/badge/Laravel-^12.0-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![React](https://img.shields.io/badge/React-^19.1.1-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-^3.x-06B6D4?style=for-the-badge\&logo=tailwindcss)](https://tailwindcss.com/)
 [![Vite](https://img.shields.io/badge/Vite-^5.x-646CFF?style=for-the-badge\&logo=vite)](https://vitejs.dev/)
+[![Yarn](https://img.shields.io/badge/Yarn-^1.22-2C8EBB?style=for-the-badge&logo=yarn)](https://yarnpkg.com/)
 
 ---
 
