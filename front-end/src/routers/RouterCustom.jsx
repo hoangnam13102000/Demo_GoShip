@@ -1,14 +1,29 @@
 import { Routes, Route } from "react-router-dom";
-import { ROUTERS } from "./router";
+import { ROUTERS } from "./Router";
 
 import MasterLayout from "../pages/client/Layout";
 import HomePage from "../pages/client/Home/index";
+import LoginPage from "../pages/auth/Login";
+import RegisterPage from "../pages/auth/Resgister";
+import ForgotPasswordPage from "../pages/auth/ForgotPassword";
 
 //================= USER ROUTER =================//
 const userRouter = [
   {
     path: ROUTERS.USER.HOME,
     element: <HomePage />,
+  },
+  {
+    path: ROUTERS.USER.LOGIN,
+    element: <LoginPage />,
+  },
+  {
+    path: ROUTERS.USER.REGISTER,
+    element: <RegisterPage />,
+  },
+   {
+    path: ROUTERS.USER.FORGOTPASSWORD,
+    element: <ForgotPasswordPage />,
   },
 ];
 

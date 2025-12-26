@@ -1,13 +1,14 @@
 // Import React
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+
 
 // Import Tailwind CSS
 import "./styles/index.css";
 
-// Router
+// Import Router
 import RouterCustom from "./routers/RouterCustom";
+import { BrowserRouter } from "react-router-dom";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
