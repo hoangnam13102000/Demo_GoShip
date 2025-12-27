@@ -4,6 +4,7 @@ export const ROUTERS = {
     LOGIN:"/dang-nhap",
     REGISTER:"/dang-ky",
     FORGOTPASSWORD:"/quen-mat-khau",
+    NOTFOUND:"/404",
   },
 };
 

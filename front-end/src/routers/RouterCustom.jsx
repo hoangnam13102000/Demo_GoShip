@@ -7,6 +7,8 @@ import LoginPage from "../pages/auth/Login";
 import RegisterPage from "../pages/auth/Resgister";
 import ForgotPasswordPage from "../pages/auth/ForgotPassword";
 
+import NotFound from "../pages/404";
+
 //================= USER ROUTER =================//
 const userRouter = [
   {
@@ -24,6 +26,10 @@ const userRouter = [
    {
     path: ROUTERS.USER.FORGOTPASSWORD,
     element: <ForgotPasswordPage />,
+  },
+   {
+    path: ROUTERS.USER.NOTFOUND,
+    element: <NotFound />,
   },
 ];
 

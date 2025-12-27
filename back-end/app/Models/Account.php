@@ -21,4 +21,16 @@ class Account extends Authenticatable
     protected $hidden = [
         'password',
     ];
+    public function customer()
+    {
+        return $this->hasOne(Customer::class);
+    }
+    public function agent()
+    {
+        return $this->hasOne(Agent::class);
+    }
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
 }
