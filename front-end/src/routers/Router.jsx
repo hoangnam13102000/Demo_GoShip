@@ -5,9 +5,9 @@ export const ROUTERS = {
     REGISTER:"/dang-ky",
     FORGOTPASSWORD:"/quen-mat-khau",
 
-    ABOUT: "/about",
-    CONTACT: "/contact",
-    SERVICES: "/services",
+    ABOUT: "/gioi-thieu",
+    CONTACT: "/lien-he",
+    SERVICES: "/dich-vu",
     BLOG: "/blog",
 
     NOTFOUND:"/404",

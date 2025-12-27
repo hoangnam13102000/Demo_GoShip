@@ -12,7 +12,7 @@ class AgentSeeder extends Seeder
         DB::table('agents')->insert([
             [
                 'account_id' => 2, // agent1@courier.com
-                'branch_id'  => 1, // ID chi nhánh tương ứng
+                'branch_id'  => 1, 
                 'contact_number' => '09010001',
                 'status' => 'ACTIVE',
                 'created_at' => now(),
@@ -20,7 +20,7 @@ class AgentSeeder extends Seeder
             ],
             [
                 'account_id' => 3, // agent2@courier.com
-                'branch_id'  => 2, // ID chi nhánh tương ứng
+                'branch_id'  => 2, 
                 'contact_number' => '09010002',
                 'status' => 'ACTIVE',
                 'created_at' => now(),

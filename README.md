@@ -129,7 +129,7 @@ yarn dev
 Ứng dụng chạy mặc định tại:
 
 ```
-http://localhost:5173
+http://localhost:5178
 ```
 
 ---
@@ -144,6 +144,6 @@ http://localhost:5173
 
 ## Tác giả
 
-* Sinh viên thực hiện: **Team 2**
+* Nhóm học viên thực hiện: **Team 2**
 * Công nghệ: Laravel + React + Tailwind
 * Năm thực hiện: **2025**
