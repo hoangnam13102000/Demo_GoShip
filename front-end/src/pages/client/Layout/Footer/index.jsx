@@ -63,22 +63,22 @@ export default function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                  <a href="/about" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
                     Về chúng tôi
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                  <a href="/services" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
                     Dịch vụ
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                  <a href="/blog" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
                     Blog
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                  <a href="/contact" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
                     Liên hệ
                   </a>
                 </li>
