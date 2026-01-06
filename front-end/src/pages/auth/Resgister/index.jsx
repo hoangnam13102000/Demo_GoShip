@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../Layout/AuthLayout";
 import AuthHeader from "../Layout/AuthHeader";
 import InputField from "../../../components/common/InputField";
-import SubmitButton from "../../../components/common/SubmitButton";
+import SubmitButton from "../../../components/common/buttons/SubmitButton";
 import DynamicDialog from "../../../components/UI/DynamicDialog";
 import { useAuthForm } from "../hooks/useAuthForm";
 

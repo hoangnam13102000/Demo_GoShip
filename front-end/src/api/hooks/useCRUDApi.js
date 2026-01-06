@@ -6,8 +6,7 @@ import { useGetAll, useMutate } from "./useBaseQuery";
  * @param {string} resource - tên resource, ví dụ 'products'
  */
 export const useCRUDApi = (resource) => {
-  
-  const endpoint = resource.includes("/") ? `/${resource}` : `/admin/${resource}`;
+  const endpoint = `/${resource.replace(/^\/+|\/+$/g, "")}`;
 
   const api = createCRUD(endpoint);
 

@@ -16,6 +16,7 @@ import NotFound from "../pages/404";
 // ===== ADMIN =====
 import Dashboard from "../pages/admin/Dashboard";
 import DashboardLayout from "../pages/admin/Layout";
+import AdminAccountsPage from "../pages/admin/AccountManagement";
 
 // ================= USER ROUTER =================
 const userRouter = [
@@ -27,12 +28,12 @@ const userRouter = [
   { path: ROUTERS.USER.CONTACT, element: <ContactPage /> },
   { path: ROUTERS.USER.SERVICES, element: <ServicesPage /> },
   { path: ROUTERS.USER.BLOG, element: <BlogPage /> },
-  { path: "*", element: <NotFound /> },
 ];
 
 // ================= ADMIN ROUTER =================
 const adminRouter = [
   { path: ROUTERS.ADMIN.DASHBOARD, element: <Dashboard /> },
+  { path: ROUTERS.ADMIN.ACCOUNTS, element: <AdminAccountsPage /> },
 ];
 
 // ================= RENDER USER =================
@@ -42,6 +43,7 @@ const RenderUserRouter = () => (
       {userRouter.map((item, index) => (
         <Route key={index} path={item.path} element={item.element} />
       ))}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   </MasterLayout>
 );
@@ -51,8 +53,13 @@ const RenderAdminRouter = () => (
   <DashboardLayout>
     <Routes>
       {adminRouter.map((item, index) => (
-        <Route key={index} path={item.path} element={item.element} />
+        <Route
+          key={index}
+          path={item.path}   // path now = "dashboard"
+          element={item.element}/>
       ))}
+
+      <Route path="*" element={<NotFound />} />
     </Routes>
   </DashboardLayout>
 );
@@ -60,7 +67,6 @@ const RenderAdminRouter = () => (
 // ================= MAIN ROUTER =================
 const RouterCustom = () => {
   const location = useLocation();
-
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   return isAdminRoute ? <RenderAdminRouter /> : <RenderUserRouter />;

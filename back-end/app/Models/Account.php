@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class Account extends Authenticatable
 {
-    use Notifiable;
-
-    protected $table = 'accounts';
+    use HasApiTokens;
 
     protected $fillable = [
         'email',

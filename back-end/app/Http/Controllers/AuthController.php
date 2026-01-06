@@ -4,15 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use App\Mail\ResetPasswordMail;
+
 class AuthController extends Controller
 {
-    // ================= LOGIN  =================
+    // ================= LOGIN =================
     public function login(Request $request)
     {
         $request->validate([
@@ -28,24 +28,54 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if (strtolower($account->status) !== 'active') {
+        if (strtoupper($account->status) !== 'ACTIVE') {
             return response()->json([
                 'message' => 'Tài khoản bị khóa'
             ], 403);
         }
 
+        // ✅ XÓA TOKEN CŨ (TRÁNH TRÙNG)
+        $account->tokens()->delete();
+
+        // ✅ TOKEN SANCTUM (CHUẨN)
+        $token = $account->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'message' => 'Đăng nhập thành công',
+            'token'   => $token,
             'user' => [
                 'id'     => $account->id,
                 'email'  => $account->email,
-                'role'   => $account->role,
-                'status' => $account->status,
+                'role'   => strtoupper($account->role),
+                'status' => strtoupper($account->status),
             ]
         ]);
     }
 
-    // ================= REGISTER  =================
+    // ================= GET CURRENT USER =================
+    public function me(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'id'     => $user->id,
+            'email'  => $user->email,
+            'role'   => strtoupper($user->role),
+            'status' => strtoupper($user->status),
+        ]);
+    }
+
+    // ================= LOGOUT =================
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Đã đăng xuất'
+        ]);
+    }
+
+    // ================= REGISTER =================
     public function register(Request $request)
     {
         $request->validate([
@@ -60,8 +90,6 @@ class AuthController extends Controller
             'status'   => 'ACTIVE',
         ]);
 
-        Auth::login($account);
-
         return response()->json([
             'message' => 'Đăng ký thành công',
             'user' => [
@@ -70,19 +98,6 @@ class AuthController extends Controller
                 'role'  => $account->role,
             ]
         ], 201);
-    }
-
-    // ================= LOGOUT =================
-    public function logout(Request $request)
-    {
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return response()->json([
-            'message' => 'Đã đăng xuất'
-        ]);
     }
 
     // ================= FORGOT PASSWORD =================
@@ -114,7 +129,6 @@ class AuthController extends Controller
         ]);
     }
 
-
     // ================= RESET PASSWORD =================
     public function resetPassword(Request $request)
     {
@@ -128,27 +142,17 @@ class AuthController extends Controller
             ->where('email', $request->email)
             ->first();
 
-        if (!$record) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Yêu cầu đặt lại mật khẩu không tồn tại.'
-            ], 400);
-        }
-
-        // Check token
-        if (!Hash::check($request->token, $record->token)) {
+        if (!$record || !Hash::check($request->token, $record->token)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Token không hợp lệ hoặc đã hết hạn.'
             ], 400);
         }
 
-        // Update password (Model tự hash)
         $account = Account::where('email', $request->email)->first();
-        $account->password = $request->password;
+        $account->password = Hash::make($request->password);
         $account->save();
 
-        // Xoá token sau khi dùng
         DB::table('password_resets')
             ->where('email', $request->email)
             ->delete();
@@ -158,5 +162,4 @@ class AuthController extends Controller
             'message' => 'Đặt lại mật khẩu thành công.'
         ]);
     }
-
 }

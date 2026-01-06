@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaUser, FaEnvelope, FaCommentDots } from "react-icons/fa";
 import InputField from "../../../components/common/InputField";
-import SubmitButton from "../../../components/common/SubmitButton";
+import SubmitButton from "../../../components/common/buttons/SubmitButton";
 
 const ContactPage = () => {
   const [form, setForm] = useState({

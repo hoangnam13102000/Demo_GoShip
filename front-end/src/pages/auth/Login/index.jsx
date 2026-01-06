@@ -5,35 +5,50 @@ import { useNavigate } from "react-router-dom";
 import AuthLayout from "../Layout/AuthLayout";
 import AuthHeader from "../Layout/AuthHeader";
 import InputField from "../../../components/common/InputField";
-import SubmitButton from "../../../components/common/SubmitButton";
-import { useAuthForm } from "../hooks/useAuthForm";
-import { loginAPI } from "../../../api/auth/request";
+import SubmitButton from "../../../components/common/buttons/SubmitButton";
 import DynamicDialog from "../../../components/UI/DynamicDialog";
+
+import { useAuthForm } from "../hooks/useAuthForm";
 
 const LoginPage = () => {
   const form = useAuthForm("login");
-  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  // dialog state
+  const [showPassword, setShowPassword] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [loginUser, setLoginUser] = useState(null);
+  const [dialogMessage, setDialogMessage] = useState("");
+  const [dialogMode, setDialogMode] = useState("success");
 
+  // ================= HANDLE LOGIN =================
   const handleLogin = async () => {
     try {
-      const res = await loginAPI({
-        email: form.values.email,
-        password: form.values.password,
+      // submit đã gọi loginAPI & lưu user + token
+      await form.submit(() => {
+        setDialogMessage("Đăng nhập thành công");
+        setDialogMode("success");
+        setDialogOpen(true);
       });
-
-      // lưu user (nếu cần)
-      localStorage.setItem("user", JSON.stringify(res.user));
-
-      // mở dialog xác nhận
-      setLoginUser(res.user);
-      setDialogOpen(true);
     } catch (err) {
-      alert(err.response?.data?.message || "Đăng nhập thất bại");
+      setDialogMessage("Đăng nhập thất bại");
+      setDialogMode("error");
+      setDialogOpen(true);
+    }
+  };
+
+  // ================= HANDLE CLOSE DIALOG =================
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+
+    if (dialogMode === "success") {
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      if (user?.role === "USER") {
+        navigate("/");
+      } else if (["ADMIN", "AGENT"].includes(user?.role)) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     }
   };
 
@@ -46,7 +61,6 @@ const LoginPage = () => {
         />
 
         <div className="p-8 space-y-6">
-          {/* EMAIL */}
           <InputField
             label="Email"
             icon={FaEnvelope}
@@ -54,9 +68,11 @@ const LoginPage = () => {
             onChange={(e) => form.setField("email", e.target.value)}
             placeholder="example@courier.com"
             error={form.errors.email}
+            remember
+            suggestions={form.emailSuggestions}
+            onSelectSuggestion={(email) => form.setField("email", email)}
           />
 
-          {/* PASSWORD */}
           <InputField
             label="Mật khẩu"
             type={showPassword ? "text" : "password"}
@@ -76,34 +92,32 @@ const LoginPage = () => {
             }
           />
 
-          {/* FORGOT */}
           <div className="flex justify-end text-sm">
             <a href="#forgot" className="text-blue-600 font-semibold">
               Quên mật khẩu?
             </a>
           </div>
 
-          {/* SUBMIT */}
           <SubmitButton
             loading={form.loading}
-            onClick={() => form.submit(handleLogin)}
+            onClick={handleLogin}
           >
             Đăng nhập
           </SubmitButton>
         </div>
       </AuthLayout>
 
-      {/* DIALOG CONFIRM */}
       <DynamicDialog
         open={dialogOpen}
-        mode="success"
-        title="Đăng nhập thành công"
-        message={`Xin chào ${loginUser?.email}`}
-        closeText="Vào trang chủ"
-        onClose={() => {
-          setDialogOpen(false);
-          navigate("/");
-        }}
+        mode={dialogMode}
+        title={
+          dialogMode === "success"
+            ? "Đăng nhập thành công"
+            : "Lỗi đăng nhập"
+        }
+        message={dialogMessage}
+        closeText="Tiếp tục"
+        onClose={handleCloseDialog}
       />
     </>
   );

@@ -16,6 +16,7 @@ export const ROUTERS = {
   
   ADMIN: {
     DASHBOARD: "/admin",
+    ACCOUNTS:"admin/quan-ly-tai-khoan",
   },
 };
 

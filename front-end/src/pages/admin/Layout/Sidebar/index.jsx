@@ -12,7 +12,7 @@ import {
 
 const menuItems = [
   { title: "Dashboard", icon: <FaTachometerAlt />, path: "/admin" },
-  { title: "Đơn hàng", icon: <FaBox />, path: "/admin/orders" },
+  { title: "Quản lý tài khoản", icon: <FaBox />, path: "/admin/quan-ly-tai-khoan" },
   { title: "Khách hàng", icon: <FaUsers />, path: "/admin/customers" },
   { title: "Vận chuyển", icon: <FaTruck />, path: "/admin/shipments" },
   { title: "Doanh thu", icon: <FaMoneyBillWave />, path: "/admin/revenue" },
