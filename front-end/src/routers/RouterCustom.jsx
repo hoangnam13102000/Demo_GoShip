@@ -17,6 +17,8 @@ import NotFound from "../pages/404";
 import Dashboard from "../pages/admin/Dashboard";
 import DashboardLayout from "../pages/admin/Layout";
 import AdminAccountsPage from "../pages/admin/AccountManagement";
+import AdminAgentsPage from "../pages/admin/AdminAgentsPage";
+import AdminCustomersPage from "../pages/admin/AdminCustomersPage.jsx";
 
 // ================= USER ROUTER =================
 const userRouter = [
@@ -34,6 +36,8 @@ const userRouter = [
 const adminRouter = [
   { path: ROUTERS.ADMIN.DASHBOARD, element: <Dashboard /> },
   { path: ROUTERS.ADMIN.ACCOUNTS, element: <AdminAccountsPage /> },
+  { path: ROUTERS.ADMIN.AGENTS, element: <AdminAgentsPage /> },
+  { path: ROUTERS.ADMIN.CUSTOMERS, element: <AdminCustomersPage /> },
 ];
 
 // ================= RENDER USER =================

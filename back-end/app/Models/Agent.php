@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+// 👇 BẮT BUỘC IMPORT
+use App\Models\Account;
+use App\Models\Branch;
+use App\Models\Shipment;
+
 class Agent extends Model
 {
     use HasFactory;

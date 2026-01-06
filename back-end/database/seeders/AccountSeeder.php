@@ -14,7 +14,7 @@ class AccountSeeder extends Seeder
             [
                 'email' => 'admin@courier.com',
                 'password' => Hash::make('password123'),
-                'role' => 'admin',
+                'role' => 'ADMIN',
                 'status' => 'ACTIVE',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -22,7 +22,7 @@ class AccountSeeder extends Seeder
             [
                 'email' => 'agent1@courier.com',
                 'password' => Hash::make('password123'),
-                'role' => 'agent',
+                'role' => 'AGENT',
                 'status' => 'ACTIVE',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -30,7 +30,7 @@ class AccountSeeder extends Seeder
             [
                 'email' => 'agent2@courier.com',
                 'password' => Hash::make('password123'),
-                'role' => 'agent',
+                'role' => 'AGENT',
                 'status' => 'ACTIVE',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -38,7 +38,7 @@ class AccountSeeder extends Seeder
             [
                 'email' => 'user1@courier.com',
                 'password' => Hash::make('password123'),
-                'role' => 'user',
+                'role' => 'USER',
                 'status' => 'ACTIVE',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -46,7 +46,7 @@ class AccountSeeder extends Seeder
             [
                 'email' => 'user2@courier.com',
                 'password' => Hash::make('password123'),
-                'role' => 'user',
+                'role' => 'USER',
                 'status' => 'INACTIVE',
                 'created_at' => now(),
                 'updated_at' => now(),

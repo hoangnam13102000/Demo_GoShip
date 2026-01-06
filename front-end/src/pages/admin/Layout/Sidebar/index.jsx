@@ -13,7 +13,8 @@ import {
 const menuItems = [
   { title: "Dashboard", icon: <FaTachometerAlt />, path: "/admin" },
   { title: "Quản lý tài khoản", icon: <FaBox />, path: "/admin/quan-ly-tai-khoan" },
-  { title: "Khách hàng", icon: <FaUsers />, path: "/admin/customers" },
+  { title: "Quản lý agent", icon: <FaUsers />, path: "/admin/quan-ly-agent" },
+  { title: "Quản lý khách hàng", icon: <FaUsers />, path: "/admin/quan-ly-khach-hang" },
   { title: "Vận chuyển", icon: <FaTruck />, path: "/admin/shipments" },
   { title: "Doanh thu", icon: <FaMoneyBillWave />, path: "/admin/revenue" },
   { title: "Báo cáo", icon: <FaChartBar />, path: "/admin/reports" },
