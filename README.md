@@ -99,9 +99,6 @@ Dự án sử dụng kiến trúc **Backend API (Laravel)** kết hợp **Fronte
 
 ---
 
-```bash
-```
-
 ---
 
 ## Cài đặt & chạy dự án
