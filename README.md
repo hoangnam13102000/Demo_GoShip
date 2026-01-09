@@ -90,14 +90,12 @@ Dự án sử dụng kiến trúc **Backend API (Laravel)** kết hợp **Fronte
 * Quản lý trạng thái lô hàng
 * Báo cáo & biểu đồ
 
-### Trang Branch
+### Trang Agent
 
 * Dashboard chi nhánh
 * Danh sách lô hàng
 * Cập nhật trạng thái
 * In biên nhận
-
----
 
 ---
 
