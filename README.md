@@ -40,7 +40,7 @@ Dự án sử dụng kiến trúc **Backend API (Laravel)** kết hợp **Fronte
 * Báo cáo & thống kê
 * Quản lý thông báo
 
-### 2. Đại lý / Chi nhánh (Agent)
+### 2. Đại lý / Chi nhánh (Branch)
 
 * Đặt và xử lý chuyển phát tại chi nhánh
 * Cập nhật trạng thái giao hàng
@@ -90,7 +90,7 @@ Dự án sử dụng kiến trúc **Backend API (Laravel)** kết hợp **Fronte
 * Quản lý trạng thái lô hàng
 * Báo cáo & biểu đồ
 
-### Trang Agent
+### Trang Branch
 
 * Dashboard chi nhánh
 * Danh sách lô hàng
@@ -112,6 +112,19 @@ Dự án sử dụng kiến trúc **Backend API (Laravel)** kết hợp **Fronte
 
 ```bash
 composer install
+```
+
+> Thiết lập môi trường & database
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+> Chạy migrate và seed dữ liệu mẫu
+
+```bash
+php artisan migrate --seed
 ```
 
 ---
@@ -144,6 +157,6 @@ http://localhost:5178
 
 ## Tác giả
 
-* Nhóm học viên thực hiện: **Team 2**
+* Nhóm học viên thực hiện: **Team 2 (Hoàng Trung Nam - Hà Minh Tuấn)**
 * Công nghệ: Laravel + React + Tailwind
 * Năm thực hiện: **2025**

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { FaStar, FaRegStar } from "react-icons/fa";
 import { useCRUDApi } from "../../../api/hooks/useCRUDApi";
 import useHandleCRUD from "../../../utils/hooks/useHandleCRUD";
 import DynamicTable from "../../../components/common/DynamicTable";
@@ -16,27 +17,44 @@ const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
 /* ================= INITIAL FORM ================= */
 
 const initialForm = {
-  full_name: "",
-  email: "",
-  phone: "",
-  address: "",
+  code: "",
+  name: "",
+  description: "",
+  base_price: "",
+  max_weight: "",
+  estimated_delivery_time: "",
+  features: "",
+  is_featured: false,
   is_active: true,
 };
 
 /* ================= HELPERS ================= */
 
-const toBool = (v) => v === true || v === 1 || v === "1" || v === "ACTIVE";
-const toStatus = (v) => (toBool(v) ? "ACTIVE" : "INACTIVE");
+const toBool = (v) => v === true || v === 1 || v === "1";
+const toBit = (v) => (toBool(v) ? 1 : 0);
+
+const parseFeatures = (val) => {
+  if (!val) return null;
+  if (typeof val !== "string") return val;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return null;
+  }
+};
 
 /* ================= PAGE ================= */
 
-const AdminCustomersPage = () => {
+const AdminShipmentServicesPage = () => {
   /* ================= API ================= */
   const { useGetAll, useCreate, useUpdate, useDelete } =
-    useCRUDApi("customers");
+    useCRUDApi("shipment-services");
 
-  const { data: customers = [], isLoading, isError } =
-    useGetAll({ staleTime: 30000 });
+  const {
+    data: services = [],
+    isLoading,
+    isError,
+  } = useGetAll({ staleTime: 1000 * 30 });
 
   const createMutation = useCreate();
   const updateMutation = useUpdate();
@@ -71,10 +89,11 @@ const AdminCustomersPage = () => {
     updateMutation,
     deleteMutation,
     resetForm,
-    entityName: "khách hàng",
+    entityName: "dịch vụ",
   });
 
   /* ================= HANDLERS ================= */
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -89,58 +108,62 @@ const AdminCustomersPage = () => {
     setShowModal(true);
   };
 
-  const handleEdit = (customer) => {
-    setEditing(customer);
+  const handleEdit = (service) => {
+    setEditing(service);
     setForm({
-      full_name: customer.full_name ?? "",
-      email: customer.account?.email ?? "",
-      phone: customer.phone ?? "",
-      address: customer.address ?? "",
-      is_active: toBool(customer.status || "ACTIVE"),
+      code: service.code || "",
+      name: service.name || "",
+      description: service.description || "",
+      base_price: service.base_price ?? "",
+      max_weight: service.max_weight ?? "",
+      estimated_delivery_time: service.estimated_delivery_time || "",
+      features: service.features ? JSON.stringify(service.features) : "",
+      is_featured: toBool(service.is_featured),
+      is_active: toBool(service.is_active),
     });
     setShowModal(true);
   };
 
   /* ================= SUBMIT (QUAN TRỌNG) ================= */
-  const handleSubmitCustomer = (e) => {
+
+  const handleSubmitService = (e) => {
     const payload = {
-      full_name: form.full_name,
-      email: form.email,
-      phone: form.phone,
-      address: form.address,
-      status: toStatus(form.is_active),
+      ...form,
+      base_price: Number(form.base_price),
+      max_weight: form.max_weight ? Number(form.max_weight) : null,
+      features: parseFeatures(form.features),
+      is_featured: toBit(form.is_featured),
+      is_active: toBit(form.is_active),
     };
 
     handleSubmit(e, editing, payload);
   };
 
   /* ================= FILTER ================= */
-  const filteredCustomers = useMemo(() => {
-    return customers
-      .filter((c) => {
-        if (!search.trim()) return true;
-        const keyword = search.toLowerCase();
 
-        return [c.full_name, c.phone, c.address, c.account?.email]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase()
-          .includes(keyword);
+  const filteredServices = useMemo(() => {
+    return services
+      .filter((s) => {
+        if (!search.trim()) return true;
+        const k = search.toLowerCase();
+        return (
+          s.name?.toLowerCase().includes(k) || s.code?.toLowerCase().includes(k)
+        );
       })
-      .filter((c) => {
+      .filter((s) => {
         if (filterStatus === "ALL") return true;
         return filterStatus === "ACTIVE"
-          ? toBool(c.status)
-          : !toBool(c.status);
+          ? toBool(s.is_active)
+          : !toBool(s.is_active);
       });
-  }, [customers, search, filterStatus]);
+  }, [services, search, filterStatus]);
 
   /* ================= PAGINATION ================= */
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-  const paginatedCustomers = useMemo(() => {
+  const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
+  const paginatedServices = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredCustomers, currentPage]);
+    return filteredServices.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredServices, currentPage]);
 
   // Reset về trang 1 khi search/filter thay đổi
   const handleSearch = (value) => {
@@ -153,81 +176,73 @@ const AdminCustomersPage = () => {
     setCurrentPage(1);
   };
 
-  /* ================= BADGE CONFIG ================= */
+  /* ================= BADGE ================= */
+
   const STATUS_BADGE_CONFIG = {
-    ACTIVE: {
-      className: "bg-green-100 text-green-700",
-      dotColor: "bg-green-500",
-    },
-    INACTIVE: {
-      className: "bg-red-100 text-red-700",
-      dotColor: "bg-red-500",
-    },
-    DEFAULT: {
-      className: "bg-gray-100 text-gray-700",
-    },
+    ACTIVE: { className: "bg-green-100 text-green-700" },
+    INACTIVE: { className: "bg-red-100 text-red-700" },
   };
 
   /* ================= UI ================= */
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Quản lý khách hàng
+          Quản lý dịch vụ vận chuyển
         </h1>
         <p className="text-gray-600 mb-6">
-          Quản lý thông tin khách hàng
+          Quản lý toàn bộ dịch vụ vận chuyển
         </p>
 
-        {/* FILTER BAR */}
         <FilterBar
           search={search}
           setSearch={handleSearch}
           filterStatus={filterStatus}
           setFilterStatus={handleFilterStatus}
           statusOptions={STATUS_OPTIONS}
-          filteredCount={filteredCustomers.length}
-          totalCount={customers.length}
+          filteredCount={filteredServices.length}
+          totalCount={services.length}
         />
 
         <DynamicTable
-          data={paginatedCustomers}
+          data={paginatedServices}
           isLoading={isLoading}
           isError={isError}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={(row) => handleDelete(row, row.name)}
           columns={[
             {
               key: "index",
               title: "STT",
               render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
             },
+            { key: "code", title: "Mã", render: (r) => r.code },
+            { key: "name", title: "Tên", render: (r) => r.name },
             {
-              key: "full_name",
-              title: "Họ tên",
-              render: (row) => row.full_name || "-",
+              key: "base_price",
+              title: "Giá",
+              render: (r) =>
+                r.base_price
+                  ? Number(r.base_price).toLocaleString("vi-VN") + "đ"
+                  : "-",
             },
             {
-              key: "email",
-              title: "Email",
-              render: (row) => row.account?.email || "-",
+              key: "is_featured",
+              title: "Nổi bật",
+              render: (r) =>
+                toBool(r.is_featured) ? (
+                  <FaStar className="text-yellow-500" />
+                ) : (
+                  <FaRegStar className="text-gray-300" />
+                ),
             },
             {
-              key: "phone",
-              title: "Số điện thoại",
-              render: (row) => row.phone || "-",
-            },
-            {
-              key: "address",
-              title: "Địa chỉ",
-              render: (row) => row.address || "-",
-            },
-            {
-              key: "status",
+              key: "is_active",
               title: "Trạng thái",
-              render: (row) => (
+              render: (r) => (
                 <GenericBadge
-                  value={row.status || "ACTIVE"}
+                  value={toBool(r.is_active) ? "ACTIVE" : "INACTIVE"}
                   config={STATUS_BADGE_CONFIG}
                 />
               ),
@@ -241,52 +256,69 @@ const AdminCustomersPage = () => {
           onPageChange={setCurrentPage}
         />
 
-        <CreateButton label="Thêm khách hàng" onClick={handleOpenCreate} />
+        <CreateButton label="Thêm dịch vụ" onClick={handleOpenCreate} />
       </div>
 
       {/* FORM */}
       <DynamicForm
         visible={showModal}
-        title={editing ? "Chỉnh sửa khách hàng" : "Tạo khách hàng mới"}
+        title={editing ? "Chỉnh sửa dịch vụ" : "Tạo dịch vụ mới"}
         form={form}
         fields={[
           {
-            name: "full_name",
+            name: "code",
+            label: "Mã dịch vụ",
             type: "text",
-            label: "Họ tên",
-            required: true,
-          },
-          {
-            name: "email",
-            type: "text",
-            label: "Email",
             readOnly: editing ? true : false,
           },
           {
-            name: "phone",
+            name: "name",
+            label: "Tên dịch vụ",
             type: "text",
-            label: "Số điện thoại",
-            required: false,
           },
           {
-            name: "address",
+            name: "description",
+            label: "Mô tả",
+            type: "textarea",
+          },
+          {
+            name: "base_price",
+            label: "Giá cơ bản",
+            type: "number",
+          },
+          {
+            name: "max_weight",
+            label: "Khối lượng tối đa (kg)",
+            type: "number",
+          },
+          {
+            name: "estimated_delivery_time",
+            label: "Thời gian giao hàng dự kiến",
             type: "text",
-            label: "Địa chỉ",
-            required: false,
+            placeholder: "Ví dụ: 1-2 ngày",
+          },
+          {
+            name: "features",
+            label: "Tính năng",
+            type: "textarea",
+            placeholder: '["Giao nhanh","Bảo hiểm"]',
+          },
+          {
+            name: "is_featured",
+            label: "Dịch vụ nổi bật",
+            type: "checkbox",
           },
           {
             name: "is_active",
+            label: "Đang hoạt động",
             type: "checkbox",
-            label: "Kích hoạt",
           },
         ]}
         editing={editing}
         successMessage={successMessage}
-        isSubmitting={
-          createMutation.isPending || updateMutation.isPending
-        }
+        isSubmitting={createMutation.isPending || updateMutation.isPending}
         onChange={handleChange}
-        onSubmit={handleSubmitCustomer}
+        onSubmit={handleSubmitService}
         onCancel={resetForm}
       />
 
@@ -303,4 +335,4 @@ const AdminCustomersPage = () => {
   );
 };
 
-export default AdminCustomersPage;
+export default AdminShipmentServicesPage;

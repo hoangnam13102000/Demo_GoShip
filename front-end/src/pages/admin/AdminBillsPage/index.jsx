@@ -11,32 +11,33 @@ import Pagination from "../../../components/common/Pagination";
 
 /* ================= CONSTANTS ================= */
 
-const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
+const STATUS_OPTIONS = ["PAID", "UNPAID"];
 
 /* ================= INITIAL FORM ================= */
 
 const initialForm = {
-  account_id: "",
-  branch_id: "",
-  contact_number: "",
-  is_active: true,
+  shipment_id: "",
+  base_amount: "",
+  weight_fee: "",
+  tax: "",
+  total_amount: "",
+  is_paid: false,
 };
 
 /* ================= HELPERS ================= */
 
-const toBool = (v) => v === true || v === 1 || v === "1" || v === "ACTIVE";
-const toBit = (v) => (toBool(v) ? 1 : 0);
-const toStatus = (v) => (toBool(v) ? "ACTIVE" : "INACTIVE");
+const toBool = (v) => v === true || v === 1 || v === "1" || v === "PAID";
+const toStatus = (v) => (toBool(v) ? "PAID" : "UNPAID");
 
 /* ================= PAGE ================= */
 
-const AdminAgentsPage = () => {
-  // ================= API =================
+const AdminBillsPage = () => {
+  /* ================= API ================= */
   const { useGetAll, useCreate, useUpdate, useDelete } =
-    useCRUDApi("agents");
+    useCRUDApi("bills");
 
   const {
-    data: agents = [],
+    data: bills = [],
     isLoading,
     isError,
   } = useGetAll({ staleTime: 1000 * 30 });
@@ -45,7 +46,7 @@ const AdminAgentsPage = () => {
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();
 
-  // ================= STATE =================
+  /* ================= STATE ================= */
   const [form, setForm] = useState(initialForm);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
@@ -61,7 +62,7 @@ const AdminAgentsPage = () => {
     setSuccessMessage("");
   };
 
-  // ================= CRUD HOOK =================
+  /* ================= CRUD HOOK ================= */
   const {
     successMessage,
     setSuccessMessage,
@@ -74,10 +75,10 @@ const AdminAgentsPage = () => {
     updateMutation,
     deleteMutation,
     resetForm,
-    entityName: "agent",
+    entityName: "hóa đơn",
   });
 
-  // ================= HANDLERS =================
+  /* ================= HANDLERS ================= */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -92,55 +93,57 @@ const AdminAgentsPage = () => {
     setShowModal(true);
   };
 
-  const handleEdit = (agent) => {
-    setEditing(agent);
+  const handleEdit = (bill) => {
+    setEditing(bill);
     setForm({
-      account_id: agent.account_id || "",
-      branch_id: agent.branch_id || "",
-      contact_number: agent.contact_number || "",
-      is_active: toBool(agent.status || "ACTIVE"),
+      shipment_id: bill.shipment_id || "",
+      base_amount: bill.base_amount ?? "",
+      weight_fee: bill.weight_fee ?? "",
+      tax: bill.tax ?? "",
+      total_amount: bill.total_amount ?? "",
+      is_paid: toBool(bill.status || "UNPAID"),
     });
     setShowModal(true);
   };
 
-  // ================= SUBMIT (QUAN TRỌNG) =================
-  const handleSubmitAgent = (e) => {
+  /* ================= SUBMIT (QUAN TRỌNG) ================= */
+  const handleSubmitBill = (e) => {
     const payload = {
-      account_id: form.account_id,
-      branch_id: form.branch_id,
-      contact_number: form.contact_number,
-      status: toStatus(form.is_active),
+      shipment_id: Number(form.shipment_id),
+      base_amount: Number(form.base_amount),
+      weight_fee: Number(form.weight_fee),
+      tax: Number(form.tax),
+      total_amount: Number(form.total_amount),
+      status: toStatus(form.is_paid),
     };
 
     handleSubmit(e, editing, payload);
   };
 
-  // ================= FILTER =================
-  const filteredAgents = useMemo(() => {
-    return agents
-      .filter((agent) => {
+  /* ================= FILTER ================= */
+  const filteredBills = useMemo(() => {
+    return bills
+      .filter((b) => {
         if (!search.trim()) return true;
         const keyword = search.toLowerCase();
         return (
-          String(agent.account_id).includes(keyword) ||
-          String(agent.branch_id).includes(keyword) ||
-          agent.contact_number?.toLowerCase().includes(keyword)
+          String(b.id).includes(keyword) ||
+          String(b.shipment_id).includes(keyword) ||
+          String(b.total_amount).includes(keyword)
         );
       })
-      .filter((agent) => {
+      .filter((b) => {
         if (filterStatus === "ALL") return true;
-        return filterStatus === "ACTIVE"
-          ? toBool(agent.status)
-          : !toBool(agent.status);
+        return b.status === filterStatus;
       });
-  }, [agents, search, filterStatus]);
+  }, [bills, search, filterStatus]);
 
-  // ================= PAGINATION =================
-  const totalPages = Math.ceil(filteredAgents.length / itemsPerPage);
-  const paginatedAgents = useMemo(() => {
+  /* ================= PAGINATION ================= */
+  const totalPages = Math.ceil(filteredBills.length / itemsPerPage);
+  const paginatedBills = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAgents.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredAgents, currentPage]);
+    return filteredBills.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredBills, currentPage]);
 
   // Reset về trang 1 khi search/filter thay đổi
   const handleSearch = (value) => {
@@ -153,30 +156,30 @@ const AdminAgentsPage = () => {
     setCurrentPage(1);
   };
 
-  // ================= BADGE CONFIG =================
+  /* ================= BADGE CONFIG ================= */
   const STATUS_BADGE_CONFIG = {
-    ACTIVE: {
+    PAID: {
       className: "bg-green-100 text-green-700",
       dotColor: "bg-green-500",
     },
-    INACTIVE: {
-      className: "bg-red-100 text-red-700",
-      dotColor: "bg-red-500",
+    UNPAID: {
+      className: "bg-yellow-100 text-yellow-700",
+      dotColor: "bg-yellow-500",
     },
     DEFAULT: {
       className: "bg-gray-100 text-gray-700",
     },
   };
 
-  // ================= UI =================
+  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Quản lý Agent
+          Quản lý hóa đơn
         </h1>
         <p className="text-gray-600 mb-6">
-          Quản lý thông tin Agent theo chi nhánh
+          Quản lý toàn bộ hóa đơn vận chuyển
         </p>
 
         {/* FILTER BAR */}
@@ -186,12 +189,12 @@ const AdminAgentsPage = () => {
           filterStatus={filterStatus}
           setFilterStatus={handleFilterStatus}
           statusOptions={STATUS_OPTIONS}
-          filteredCount={filteredAgents.length}
-          totalCount={agents.length}
+          filteredCount={filteredBills.length}
+          totalCount={bills.length}
         />
 
         <DynamicTable
-          data={paginatedAgents}
+          data={paginatedBills}
           isLoading={isLoading}
           isError={isError}
           onEdit={handleEdit}
@@ -203,26 +206,54 @@ const AdminAgentsPage = () => {
               render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
             },
             {
-              key: "account_id",
-              title: "Account ID",
-              render: (row) => row.account_id,
+              key: "id",
+              title: "Mã hóa đơn",
+              render: (row) => (
+                <span className="font-mono font-semibold text-blue-600">
+                  #{row.id}
+                </span>
+              ),
             },
             {
-              key: "branch_id",
-              title: "Chi nhánh",
-              render: (row) => row.branch_id,
+              key: "shipment_id",
+              title: "Mã vận đơn",
+              render: (row) => (
+                <span className="text-gray-700">#{row.shipment_id}</span>
+              ),
             },
             {
-              key: "contact_number",
-              title: "SĐT",
-              render: (row) => row.contact_number || "-",
+              key: "base_amount",
+              title: "Giá cơ bản",
+              render: (row) =>
+                Number(row.base_amount).toLocaleString("vi-VN") + "đ",
+            },
+            {
+              key: "weight_fee",
+              title: "Phí trọng lượng",
+              render: (row) =>
+                Number(row.weight_fee).toLocaleString("vi-VN") + "đ",
+            },
+            {
+              key: "tax",
+              title: "Thuế",
+              render: (row) =>
+                Number(row.tax).toLocaleString("vi-VN") + "đ",
+            },
+            {
+              key: "total_amount",
+              title: "Tổng tiền",
+              render: (row) => (
+                <span className="font-semibold text-lg text-blue-600">
+                  {Number(row.total_amount).toLocaleString("vi-VN")}đ
+                </span>
+              ),
             },
             {
               key: "status",
               title: "Trạng thái",
               render: (row) => (
                 <GenericBadge
-                  value={row.status || "ACTIVE"}
+                  value={row.status || "UNPAID"}
                   config={STATUS_BADGE_CONFIG}
                 />
               ),
@@ -244,37 +275,54 @@ const AdminAgentsPage = () => {
           onPageChange={setCurrentPage}
         />
 
-        <CreateButton label="Thêm Agent" onClick={handleOpenCreate} />
+        <CreateButton label="Tạo hóa đơn" onClick={handleOpenCreate} />
       </div>
 
       {/* FORM */}
       <DynamicForm
         visible={showModal}
-        title={editing ? "Chỉnh sửa Agent" : "Tạo Agent mới"}
+        title={editing ? "Chỉnh sửa hóa đơn" : "Tạo hóa đơn mới"}
         form={form}
         fields={[
           {
-            name: "account_id",
+            name: "shipment_id",
             type: "number",
-            label: "Account ID",
+            label: "Mã vận đơn",
             required: true,
+            readOnly: editing ? true : false,
           },
           {
-            name: "branch_id",
+            name: "base_amount",
             type: "number",
-            label: "Chi nhánh",
+            label: "Giá cơ bản (đ)",
             required: true,
+            step: "0.01",
           },
           {
-            name: "contact_number",
-            type: "text",
-            label: "Số điện thoại",
+            name: "weight_fee",
+            type: "number",
+            label: "Phí trọng lượng (đ)",
             required: false,
+            step: "0.01",
           },
           {
-            name: "is_active",
+            name: "tax",
+            type: "number",
+            label: "Thuế (đ)",
+            required: false,
+            step: "0.01",
+          },
+          {
+            name: "total_amount",
+            type: "number",
+            label: "Tổng tiền (đ)",
+            required: true,
+            step: "0.01",
+          },
+          {
+            name: "is_paid",
             type: "checkbox",
-            label: "Kích hoạt",
+            label: "Đã thanh toán",
           },
         ]}
         editing={editing}
@@ -283,7 +331,7 @@ const AdminAgentsPage = () => {
           createMutation.isPending || updateMutation.isPending
         }
         onChange={handleChange}
-        onSubmit={handleSubmitAgent}
+        onSubmit={handleSubmitBill}
         onCancel={resetForm}
       />
 
@@ -304,4 +352,4 @@ const AdminAgentsPage = () => {
   );
 };
 
-export default AdminAgentsPage;
+export default AdminBillsPage;

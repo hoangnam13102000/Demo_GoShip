@@ -9,6 +9,8 @@ export const ROUTERS = {
     CONTACT: "/lien-he",
     SERVICES: "/dich-vu",
     BLOG: "/blog",
+    CREATESHIPMENTPAGE:"/tao-don-hang",
+    TRACKINGPAGE:"/tra-cuu-don-hang",
 
     NOTFOUND: "/404",
   },
@@ -19,6 +21,10 @@ export const ROUTERS = {
     ACCOUNTS:"admin/quan-ly-tai-khoan",
     AGENTS:"admin/quan-ly-agent",
     CUSTOMERS: "/admin/quan-ly-khach-hang",
+    SERVICES: "/admin/quan-ly-dich-vu",
+    SHIPMENTS: "/admin/quan-ly-don-hang",
+    BRANCHES: "/admin/quan-ly-chi-nhanh",
+    BILL:"/admin/quan-ly-hoa-don",
   },
 };
 

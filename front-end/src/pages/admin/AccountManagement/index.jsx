@@ -7,16 +7,28 @@ import FilterBar from "../../../components/common/FilterBar";
 import CreateButton from "../../../components/common/buttons/CreateButton";
 import GenericBadge from "../../../components/UI/GenericBadge";
 import DynamicDialog from "../../../components/UI/DynamicDialog";
+import Pagination from "../../../components/common/Pagination";
+
+/* ================= CONSTANTS ================= */
 
 const ROLE_OPTIONS = ["ADMIN", "AGENT", "USER"];
 const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
+
+/* ================= INITIAL FORM ================= */
 
 const initialForm = {
   email: "",
   password: "",
   role: "USER",
-  status: "ACTIVE",
+  is_active: true,
 };
+
+/* ================= HELPERS ================= */
+
+const toBool = (v) => v === true || v === 1 || v === "1" || v === "ACTIVE";
+const toStatus = (v) => (toBool(v) ? "ACTIVE" : "INACTIVE");
+
+/* ================= PAGE ================= */
 
 const AdminAccountsPage = () => {
   // ================= API =================
@@ -40,6 +52,8 @@ const AdminAccountsPage = () => {
   const [filterRole, setFilterRole] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [showModal, setShowModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const resetForm = () => {
     setForm(initialForm);
@@ -61,12 +75,16 @@ const AdminAccountsPage = () => {
     updateMutation,
     deleteMutation,
     resetForm,
+    entityName: "tài khoản",
   });
 
   // ================= HANDLERS =================
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleOpenCreate = () => {
@@ -81,9 +99,21 @@ const AdminAccountsPage = () => {
       email: account.email || "",
       password: "",
       role: account.role || "USER",
-      status: account.status || "ACTIVE",
+      is_active: toBool(account.status || "ACTIVE"),
     });
     setShowModal(true);
+  };
+
+  // ================= SUBMIT (QUAN TRỌNG) =================
+  const handleSubmitAccount = (e) => {
+    const payload = {
+      email: form.email,
+      password: form.password,
+      role: form.role,
+      status: toStatus(form.is_active),
+    };
+
+    handleSubmit(e, editing, payload);
   };
 
   // ================= FILTER =================
@@ -100,10 +130,36 @@ const AdminAccountsPage = () => {
       .filter((acc) =>
         filterRole === "ALL" ? true : acc.role === filterRole
       )
-      .filter((acc) =>
-        filterStatus === "ALL" ? true : acc.status === filterStatus
-      );
+      .filter((acc) => {
+        if (filterStatus === "ALL") return true;
+        return filterStatus === "ACTIVE"
+          ? toBool(acc.status)
+          : !toBool(acc.status);
+      });
   }, [accounts, search, filterRole, filterStatus]);
+
+  // ================= PAGINATION =================
+  const totalPages = Math.ceil(filteredAccounts.length / itemsPerPage);
+  const paginatedAccounts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAccounts.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAccounts, currentPage]);
+
+  // Reset về trang 1 khi search/filter thay đổi
+  const handleSearch = (value) => {
+    setSearch(value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterRole = (value) => {
+    setFilterRole(value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterStatus = (value) => {
+    setFilterStatus(value);
+    setCurrentPage(1);
+  };
 
   // ================= BADGE CONFIG =================
   const ROLE_BADGE_CONFIG = {
@@ -138,11 +194,11 @@ const AdminAccountsPage = () => {
 
         <FilterBar
           search={search}
-          setSearch={setSearch}
+          setSearch={handleSearch}
           filterRole={filterRole}
-          setFilterRole={setFilterRole}
+          setFilterRole={handleFilterRole}
           filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
+          setFilterStatus={handleFilterStatus}
           roleOptions={ROLE_OPTIONS}
           statusOptions={STATUS_OPTIONS}
           filteredCount={filteredAccounts.length}
@@ -150,13 +206,13 @@ const AdminAccountsPage = () => {
         />
 
         <DynamicTable
-          data={filteredAccounts}
+          data={paginatedAccounts}
           isLoading={isLoading}
           isError={isError}
           onEdit={handleEdit}
           onDelete={handleDelete}
           columns={[
-            { key: "index", title: "STT", render: (_, i) => i + 1 },
+            { key: "index", title: "STT", render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1 },
             { key: "email", title: "Email", render: (row) => row.email },
             {
               key: "role",
@@ -169,7 +225,10 @@ const AdminAccountsPage = () => {
               key: "status",
               title: "Trạng thái",
               render: (row) => (
-                <GenericBadge value={row.status} config={STATUS_BADGE_CONFIG} />
+                <GenericBadge
+                  value={row.status || "ACTIVE"}
+                  config={STATUS_BADGE_CONFIG}
+                />
               ),
             },
             {
@@ -183,6 +242,12 @@ const AdminAccountsPage = () => {
           ]}
         />
 
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+
         <CreateButton label="Thêm tài khoản" onClick={handleOpenCreate} />
       </div>
 
@@ -192,8 +257,17 @@ const AdminAccountsPage = () => {
         title={editing ? "Chỉnh sửa tài khoản" : "Tạo tài khoản mới"}
         form={form}
         fields={[
-          { name: "email", type: "email", hideWhenEdit: true },
-          { name: "password", type: "password", hideWhenEdit: true },
+          {
+            name: "email",
+            type: "email",
+            readOnly: editing ? true : false,
+          },
+          {
+            name: "password",
+            type: "password",
+            required: editing ? false : true,
+            placeholder: editing ? "Để trống nếu không thay đổi" : "",
+          },
           {
             name: "role",
             type: "select",
@@ -203,12 +277,9 @@ const AdminAccountsPage = () => {
             })),
           },
           {
-            name: "status",
-            type: "select",
-            options: STATUS_OPTIONS.map((s) => ({
-              label: s,
-              value: s,
-            })),
+            name: "is_active",
+            type: "checkbox",
+            label: "Kích hoạt",
           },
         ]}
         editing={editing}
@@ -217,7 +288,7 @@ const AdminAccountsPage = () => {
           createMutation.isPending || updateMutation.isPending
         }
         onChange={handleChange}
-        onSubmit={(e) => handleSubmit(e, editing, form)}
+        onSubmit={handleSubmitAccount}
         onCancel={resetForm}
       />
 

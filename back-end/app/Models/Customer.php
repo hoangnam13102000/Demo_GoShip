@@ -8,13 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     use HasFactory;
+
     protected $fillable = [
+        'account_id',
         'full_name',
-        'email',
         'phone',
         'address',
     ];
-      // Quan hệ với Account
+
+    // Quan hệ với Account
     public function account()
     {
         return $this->belongsTo(Account::class);

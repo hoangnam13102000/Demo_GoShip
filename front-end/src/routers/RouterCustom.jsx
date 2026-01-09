@@ -11,6 +11,8 @@ import AboutPage from "../pages/client/About";
 import ContactPage from "../pages/client/Contact";
 import ServicesPage from "../pages/client/Services";
 import BlogPage from "../pages/client/Blog";
+import CreateShipmentPage from "../pages/client/CreateShipmentPage";
+import TrackingPage from "../pages/client/TrackingPage";
 import NotFound from "../pages/404";
 
 // ===== ADMIN =====
@@ -19,7 +21,10 @@ import DashboardLayout from "../pages/admin/Layout";
 import AdminAccountsPage from "../pages/admin/AccountManagement";
 import AdminAgentsPage from "../pages/admin/AdminAgentsPage";
 import AdminCustomersPage from "../pages/admin/AdminCustomersPage.jsx";
-
+import AdminShipmentServicesPage from "../pages/admin/AdminShipmentServicesPage";
+import AdminShipmentsPage from "../pages/admin/AdminShipmentsPage/index.jsx";
+import AdminBranchesPage from "../pages/admin/AdminBranchesPage/index.jsx";
+import AdminBillsPage from "../pages/admin/AdminBillsPage/index.jsx";
 // ================= USER ROUTER =================
 const userRouter = [
   { path: ROUTERS.USER.HOME, element: <HomePage /> },
@@ -29,6 +34,8 @@ const userRouter = [
   { path: ROUTERS.USER.ABOUT, element: <AboutPage /> },
   { path: ROUTERS.USER.CONTACT, element: <ContactPage /> },
   { path: ROUTERS.USER.SERVICES, element: <ServicesPage /> },
+  { path: ROUTERS.USER.CREATESHIPMENTPAGE, element: <CreateShipmentPage /> },
+  { path: ROUTERS.USER.TRACKINGPAGE, element: <TrackingPage /> },
   { path: ROUTERS.USER.BLOG, element: <BlogPage /> },
 ];
 
@@ -38,6 +45,11 @@ const adminRouter = [
   { path: ROUTERS.ADMIN.ACCOUNTS, element: <AdminAccountsPage /> },
   { path: ROUTERS.ADMIN.AGENTS, element: <AdminAgentsPage /> },
   { path: ROUTERS.ADMIN.CUSTOMERS, element: <AdminCustomersPage /> },
+  { path: ROUTERS.ADMIN.SERVICES, element: <AdminShipmentServicesPage /> },
+  { path: ROUTERS.ADMIN.SHIPMENTS, element: <AdminShipmentsPage /> },
+  { path: ROUTERS.ADMIN.BRANCHES, element: <AdminBranchesPage /> },
+  { path: ROUTERS.ADMIN.BILL, element: <AdminBillsPage /> },
+
 ];
 
 // ================= RENDER USER =================

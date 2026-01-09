@@ -16,27 +16,27 @@ const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
 /* ================= INITIAL FORM ================= */
 
 const initialForm = {
-  account_id: "",
-  branch_id: "",
-  contact_number: "",
+  name: "",
+  city: "",
+  address: "",
+  phone: "",
   is_active: true,
 };
 
 /* ================= HELPERS ================= */
 
 const toBool = (v) => v === true || v === 1 || v === "1" || v === "ACTIVE";
-const toBit = (v) => (toBool(v) ? 1 : 0);
 const toStatus = (v) => (toBool(v) ? "ACTIVE" : "INACTIVE");
 
 /* ================= PAGE ================= */
 
-const AdminAgentsPage = () => {
-  // ================= API =================
+const AdminBranchesPage = () => {
+  /* ================= API ================= */
   const { useGetAll, useCreate, useUpdate, useDelete } =
-    useCRUDApi("agents");
+    useCRUDApi("branches");
 
   const {
-    data: agents = [],
+    data: branches = [],
     isLoading,
     isError,
   } = useGetAll({ staleTime: 1000 * 30 });
@@ -45,7 +45,7 @@ const AdminAgentsPage = () => {
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();
 
-  // ================= STATE =================
+  /* ================= STATE ================= */
   const [form, setForm] = useState(initialForm);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
@@ -61,7 +61,7 @@ const AdminAgentsPage = () => {
     setSuccessMessage("");
   };
 
-  // ================= CRUD HOOK =================
+  /* ================= CRUD HOOK ================= */
   const {
     successMessage,
     setSuccessMessage,
@@ -74,10 +74,10 @@ const AdminAgentsPage = () => {
     updateMutation,
     deleteMutation,
     resetForm,
-    entityName: "agent",
+    entityName: "chi nhánh",
   });
 
-  // ================= HANDLERS =================
+  /* ================= HANDLERS ================= */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -92,55 +92,58 @@ const AdminAgentsPage = () => {
     setShowModal(true);
   };
 
-  const handleEdit = (agent) => {
-    setEditing(agent);
+  const handleEdit = (branch) => {
+    setEditing(branch);
     setForm({
-      account_id: agent.account_id || "",
-      branch_id: agent.branch_id || "",
-      contact_number: agent.contact_number || "",
-      is_active: toBool(agent.status || "ACTIVE"),
+      name: branch.name || "",
+      city: branch.city || "",
+      address: branch.address || "",
+      phone: branch.phone || "",
+      is_active: toBool(branch.status || "ACTIVE"),
     });
     setShowModal(true);
   };
 
-  // ================= SUBMIT (QUAN TRỌNG) =================
-  const handleSubmitAgent = (e) => {
+  /* ================= SUBMIT (QUAN TRỌNG) ================= */
+  const handleSubmitBranch = (e) => {
     const payload = {
-      account_id: form.account_id,
-      branch_id: form.branch_id,
-      contact_number: form.contact_number,
+      name: form.name,
+      city: form.city || null,
+      address: form.address || null,
+      phone: form.phone || null,
       status: toStatus(form.is_active),
     };
 
     handleSubmit(e, editing, payload);
   };
 
-  // ================= FILTER =================
-  const filteredAgents = useMemo(() => {
-    return agents
-      .filter((agent) => {
+  /* ================= FILTER ================= */
+  const filteredBranches = useMemo(() => {
+    return branches
+      .filter((b) => {
         if (!search.trim()) return true;
         const keyword = search.toLowerCase();
         return (
-          String(agent.account_id).includes(keyword) ||
-          String(agent.branch_id).includes(keyword) ||
-          agent.contact_number?.toLowerCase().includes(keyword)
+          b.name?.toLowerCase().includes(keyword) ||
+          b.city?.toLowerCase().includes(keyword) ||
+          b.address?.toLowerCase().includes(keyword) ||
+          b.phone?.toLowerCase().includes(keyword)
         );
       })
-      .filter((agent) => {
+      .filter((b) => {
         if (filterStatus === "ALL") return true;
         return filterStatus === "ACTIVE"
-          ? toBool(agent.status)
-          : !toBool(agent.status);
+          ? toBool(b.status)
+          : !toBool(b.status);
       });
-  }, [agents, search, filterStatus]);
+  }, [branches, search, filterStatus]);
 
-  // ================= PAGINATION =================
-  const totalPages = Math.ceil(filteredAgents.length / itemsPerPage);
-  const paginatedAgents = useMemo(() => {
+  /* ================= PAGINATION ================= */
+  const totalPages = Math.ceil(filteredBranches.length / itemsPerPage);
+  const paginatedBranches = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAgents.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredAgents, currentPage]);
+    return filteredBranches.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredBranches, currentPage]);
 
   // Reset về trang 1 khi search/filter thay đổi
   const handleSearch = (value) => {
@@ -153,7 +156,7 @@ const AdminAgentsPage = () => {
     setCurrentPage(1);
   };
 
-  // ================= BADGE CONFIG =================
+  /* ================= BADGE CONFIG ================= */
   const STATUS_BADGE_CONFIG = {
     ACTIVE: {
       className: "bg-green-100 text-green-700",
@@ -168,15 +171,15 @@ const AdminAgentsPage = () => {
     },
   };
 
-  // ================= UI =================
+  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Quản lý Agent
+          Quản lý chi nhánh
         </h1>
         <p className="text-gray-600 mb-6">
-          Quản lý thông tin Agent theo chi nhánh
+          Quản lý toàn bộ chi nhánh công ty
         </p>
 
         {/* FILTER BAR */}
@@ -186,12 +189,12 @@ const AdminAgentsPage = () => {
           filterStatus={filterStatus}
           setFilterStatus={handleFilterStatus}
           statusOptions={STATUS_OPTIONS}
-          filteredCount={filteredAgents.length}
-          totalCount={agents.length}
+          filteredCount={filteredBranches.length}
+          totalCount={branches.length}
         />
 
         <DynamicTable
-          data={paginatedAgents}
+          data={paginatedBranches}
           isLoading={isLoading}
           isError={isError}
           onEdit={handleEdit}
@@ -203,19 +206,28 @@ const AdminAgentsPage = () => {
               render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
             },
             {
-              key: "account_id",
-              title: "Account ID",
-              render: (row) => row.account_id,
+              key: "name",
+              title: "Tên chi nhánh",
+              render: (row) => (
+                <span className="font-semibold text-gray-900">
+                  {row.name}
+                </span>
+              ),
             },
             {
-              key: "branch_id",
-              title: "Chi nhánh",
-              render: (row) => row.branch_id,
+              key: "city",
+              title: "Thành phố",
+              render: (row) => row.city || "-",
             },
             {
-              key: "contact_number",
-              title: "SĐT",
-              render: (row) => row.contact_number || "-",
+              key: "address",
+              title: "Địa chỉ",
+              render: (row) => row.address || "-",
+            },
+            {
+              key: "phone",
+              title: "Số điện thoại",
+              render: (row) => row.phone || "-",
             },
             {
               key: "status",
@@ -244,29 +256,35 @@ const AdminAgentsPage = () => {
           onPageChange={setCurrentPage}
         />
 
-        <CreateButton label="Thêm Agent" onClick={handleOpenCreate} />
+        <CreateButton label="Thêm chi nhánh" onClick={handleOpenCreate} />
       </div>
 
       {/* FORM */}
       <DynamicForm
         visible={showModal}
-        title={editing ? "Chỉnh sửa Agent" : "Tạo Agent mới"}
+        title={editing ? "Chỉnh sửa chi nhánh" : "Tạo chi nhánh mới"}
         form={form}
         fields={[
           {
-            name: "account_id",
-            type: "number",
-            label: "Account ID",
+            name: "name",
+            type: "text",
+            label: "Tên chi nhánh",
             required: true,
           },
           {
-            name: "branch_id",
-            type: "number",
-            label: "Chi nhánh",
-            required: true,
+            name: "city",
+            type: "text",
+            label: "Thành phố",
+            required: false,
           },
           {
-            name: "contact_number",
+            name: "address",
+            type: "text",
+            label: "Địa chỉ",
+            required: false,
+          },
+          {
+            name: "phone",
             type: "text",
             label: "Số điện thoại",
             required: false,
@@ -283,7 +301,7 @@ const AdminAgentsPage = () => {
           createMutation.isPending || updateMutation.isPending
         }
         onChange={handleChange}
-        onSubmit={handleSubmitAgent}
+        onSubmit={handleSubmitBranch}
         onCancel={resetForm}
       />
 
@@ -304,4 +322,4 @@ const AdminAgentsPage = () => {
   );
 };
 
-export default AdminAgentsPage;
+export default AdminBranchesPage;

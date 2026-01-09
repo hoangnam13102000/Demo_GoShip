@@ -3,6 +3,10 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaSpinner,
+  FaCheck,
+  FaStar,
+  FaToggleOn,
+  FaToggleOff,
 } from "react-icons/fa";
 
 const DynamicForm = ({
@@ -19,6 +23,24 @@ const DynamicForm = ({
   error,
 }) => {
   if (!visible) return null;
+
+  // Checkbox config cho shipment service
+  const checkboxConfig = {
+    is_featured: {
+      label: "Dịch vụ nổi bật",
+      description: "Hiển thị dịch vụ ở vị trí ưu tiên",
+      icon: FaStar,
+      color: "from-yellow-400 to-amber-500",
+      bgColor: "from-yellow-50 to-amber-50",
+    },
+    is_active: {
+      label: "Kích hoạt dịch vụ",
+      description: "Cho phép khách hàng sử dụng dịch vụ này",
+      icon: FaCheck,
+      color: "from-emerald-500 to-green-600",
+      bgColor: "from-emerald-50 to-green-50",
+    },
+  };
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900/50 to-slate-900/30 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 md:p-6 z-50">
@@ -77,6 +99,95 @@ const DynamicForm = ({
               const fieldValue = form[field.name];
               const isRequired = field.required ?? true;
 
+              // ============= CUSTOM CHECKBOX =============
+              if (field.type === "checkbox") {
+                const isChecked = fieldValue === true || fieldValue === 1 || fieldValue === "1";
+                const config = checkboxConfig[field.name];
+                const IconComponent = config?.icon;
+
+                return (
+                  <div key={field.name} className="group">
+                    <label className="block text-xs sm:text-sm font-semibold text-slate-900 mb-3">
+                      {field.label || field.name}
+                    </label>
+
+                    {/* Modern Checkbox Card */}
+                    <div
+                      onClick={() => {
+                        if (!isSubmitting) {
+                          onChange({
+                            target: {
+                              name: field.name,
+                              type: "checkbox",
+                              checked: !isChecked,
+                            },
+                          });
+                        }
+                      }}
+                      className={`relative flex items-center gap-3 sm:gap-4 p-4 sm:p-5 cursor-pointer rounded-xl border-2 transition-all duration-300 ${
+                        isChecked
+                          ? `bg-gradient-to-r ${config?.bgColor || "from-blue-50 to-blue-50"} border-blue-300 shadow-md shadow-blue-200`
+                          : "bg-slate-50 border-slate-200 hover:border-slate-300 hover:bg-slate-100"
+                      } ${isSubmitting ? "opacity-60 cursor-not-allowed" : "hover:shadow-lg"}`}
+                    >
+                      {/* Animated Checkbox Circle */}
+                      <div
+                        className={`relative w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${
+                          isChecked
+                            ? `bg-gradient-to-br ${config?.color || "from-blue-600 to-blue-700"} border-transparent shadow-lg`
+                            : "border-slate-300 group-hover:border-blue-400"
+                        }`}
+                      >
+                        {isChecked && IconComponent && (
+                          <IconComponent className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white animate-pulse" />
+                        )}
+                      </div>
+
+                      {/* Text Content */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs sm:text-sm font-semibold transition-colors duration-300 ${
+                          isChecked ? "text-slate-900" : "text-slate-700"
+                        }`}>
+                          {config?.label || field.label || field.name}
+                        </p>
+                        {config?.description && (
+                          <p className={`text-xs mt-1 transition-colors duration-300 ${
+                            isChecked ? "text-blue-600" : "text-slate-500"
+                          }`}>
+                            {config.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Toggle Icon */}
+                      <div className="flex-shrink-0 ml-2">
+                        {isChecked ? (
+                          <FaToggleOn className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-500 transition-transform duration-300" />
+                        ) : (
+                          <FaToggleOff className="w-6 h-6 sm:w-7 sm:h-7 text-slate-400 transition-transform duration-300" />
+                        )}
+                      </div>
+
+                      {/* Hidden Input (keep original logic) */}
+                      <input
+                        type="checkbox"
+                        name={field.name}
+                        checked={isChecked}
+                        onChange={() => {}}
+                        disabled={isSubmitting}
+                        className="absolute opacity-0 w-0 h-0"
+                        required={field.required ?? false}
+                      />
+                    </div>
+
+                    {field.hint && (
+                      <p className="text-xs text-slate-500 mt-2.5">{field.hint}</p>
+                    )}
+                  </div>
+                );
+              }
+
+              // ============= SELECT =============
               if (field.type === "select") {
                 return (
                   <div key={field.name} className="group">
@@ -128,6 +239,7 @@ const DynamicForm = ({
                 );
               }
 
+              // ============= TEXTAREA =============
               if (field.type === "textarea") {
                 return (
                   <div key={field.name} className="group">
@@ -156,6 +268,7 @@ const DynamicForm = ({
                 );
               }
 
+              // ============= TEXT INPUT & OTHER =============
               return (
                 <div key={field.name} className="group">
                   <label className="block text-xs sm:text-sm font-semibold text-slate-900 mb-2.5">

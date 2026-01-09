@@ -13,10 +13,13 @@ import {
 const menuItems = [
   { title: "Dashboard", icon: <FaTachometerAlt />, path: "/admin" },
   { title: "Quản lý tài khoản", icon: <FaBox />, path: "/admin/quan-ly-tai-khoan" },
-  { title: "Quản lý agent", icon: <FaUsers />, path: "/admin/quan-ly-agent" },
+  { title: "Quản lý chi nhánh", icon: <FaBox />, path: "/admin/quan-ly-chi-nhanh" },
+  { title: "Quản lý nhân viên", icon: <FaUsers />, path: "/admin/quan-ly-agent" },
   { title: "Quản lý khách hàng", icon: <FaUsers />, path: "/admin/quan-ly-khach-hang" },
-  { title: "Vận chuyển", icon: <FaTruck />, path: "/admin/shipments" },
+  { title: "Quản lý dịch vụ", icon: <FaUsers />, path: "/admin/quan-ly-dich-vu" },
+  { title: "Quản lý vận chuyển", icon: <FaTruck />, path: "/admin/quan-ly-don-hang" },
   { title: "Doanh thu", icon: <FaMoneyBillWave />, path: "/admin/revenue" },
+  { title: "Quản lý hóa đơn", icon: <FaMoneyBillWave />, path: "/admin/quan-ly-hoa-don" },
   { title: "Báo cáo", icon: <FaChartBar />, path: "/admin/reports" },
   { title: "Cài đặt", icon: <FaCog />, path: "/admin/settings" },
 ];
