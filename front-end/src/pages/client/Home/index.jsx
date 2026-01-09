@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import {
   FaTruck,
   FaFileAlt,
@@ -29,7 +30,7 @@ const HomePage = () => {
     isLoading,
     isError,
   } = useGetAll({
-    staleTime: 1000 * 60, // 1 phút là hợp lý cho homepage
+    staleTime: 1000 * 60,
   });
 
   /* ================= STATE ================= */
@@ -70,12 +71,8 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* ================= HERO ================= */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 pt-20 pb-32 px-4 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <FaTruck className="text-white text-[180px] absolute -top-10 -left-10" />
-        </div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
+      <section className="relative bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 pt-20 pb-32 px-4">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="text-5xl font-bold text-white mb-4">
               Courier Services
@@ -85,7 +82,6 @@ const HomePage = () => {
             </p>
           </div>
 
-          {/* ===== Tracking Form ===== */}
           <div className="max-w-2xl mx-auto">
             <form
               onSubmit={handleTrackingSearch}
@@ -105,15 +101,14 @@ const HomePage = () => {
                   placeholder="Nhập mã vận đơn"
                   className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg"
                 />
-                <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">
+                <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold">
                   Tìm kiếm
                 </button>
               </div>
 
               {searchSubmitted && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
-                   Đang tìm vận đơn:{" "}
-                  <b>{trackingNumber}</b>
+                <div className="mt-4 p-3 bg-green-50 border rounded">
+                  Đang tìm vận đơn: <b>{trackingNumber}</b>
                 </div>
               )}
             </form>
@@ -128,71 +123,47 @@ const HomePage = () => {
             <h2 className="text-4xl font-bold mb-4">
               Dịch vụ của chúng tôi
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Chọn loại dịch vụ phù hợp với nhu cầu của bạn
-            </p>
           </div>
 
-          {/* STATE */}
-          {isLoading && (
-            <p className="text-center text-gray-500">
-              Đang tải dịch vụ...
-            </p>
-          )}
-
-          {isError && (
-            <p className="text-center text-red-500">
-              Không thể tải danh sách dịch vụ
-            </p>
-          )}
+          {isLoading && <p className="text-center">Đang tải...</p>}
+          {isError && <p className="text-center text-red-500">Lỗi tải dữ liệu</p>}
 
           {!isLoading && !isError && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {mappedServices.map((service) => (
-                <ServiceCard
+                <Link
                   key={service.id}
-                  {...service}
-                  onSelect={() =>
-                    console.log(
-                      "Selected service:",
-                      service.serviceCode
-                    )
-                  }
-                />
+                  to={`/tao-don-hang?type=${service.serviceCode}`}
+                  state={{
+                    service_id: service.id,
+                    service_code: service.serviceCode,
+                    service_name: service.title,
+                    base_price: service.price,
+                  }}
+                  className="block"
+                >
+                  <ServiceCard
+                    {...service}
+                    onSelect={() => {}}
+                  />
+                </Link>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* ================= DELIVERY PROCESS ================= */}
+      {/* ================= PROCESS ================= */}
       <section className="py-24 px-4 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
-              Quy trình giao hàng
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Bốn bước đơn giản để gửi và nhận hàng
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { step: 1, icon: FaHome, title: "Tạo đơn" },
-              { step: 2, icon: FaCheckCircle, title: "Xác nhận" },
-              { step: 3, icon: FaTruck, title: "Vận chuyển" },
-              { step: 4, icon: FaMapMarkerAlt, title: "Giao hàng" },
-            ].map((item) => (
-              <div key={item.step} className="text-center">
-                <div className="w-20 h-20 mx-auto bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4">
-                  {item.step}
-                </div>
-                <item.icon className="text-blue-600 text-2xl mx-auto mb-2" />
-                <h3 className="font-bold">{item.title}</h3>
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-8">
+          {[FaHome, FaCheckCircle, FaTruck, FaMapMarkerAlt].map(
+            (Icon, index) => (
+              <div key={index} className="text-center">
+                <Icon className="text-blue-600 text-3xl mx-auto mb-2" />
+                <p className="font-bold">Bước {index + 1}</p>
               </div>
-            ))}
-          </div>
+            )
+          )}
         </div>
       </section>
     </div>

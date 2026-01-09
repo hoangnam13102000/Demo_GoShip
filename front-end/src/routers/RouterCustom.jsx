@@ -25,6 +25,9 @@ import AdminShipmentServicesPage from "../pages/admin/AdminShipmentServicesPage"
 import AdminShipmentsPage from "../pages/admin/AdminShipmentsPage/index.jsx";
 import AdminBranchesPage from "../pages/admin/AdminBranchesPage/index.jsx";
 import AdminBillsPage from "../pages/admin/AdminBillsPage/index.jsx";
+
+// ===== AGENT =====
+import AgentDashboard from "../pages/agent/Layout";
 // ================= USER ROUTER =================
 const userRouter = [
   { path: ROUTERS.USER.HOME, element: <HomePage /> },
@@ -52,6 +55,10 @@ const adminRouter = [
 
 ];
 
+// ================= ADMIN ROUTER =================
+const agentRouter = [
+  { path: ROUTERS.AGENTS.DASHBOARD, element: <Dashboard /> },
+];
 // ================= RENDER USER =================
 const RenderUserRouter = () => (
   <MasterLayout>
@@ -84,8 +91,14 @@ const RenderAdminRouter = () => (
 const RouterCustom = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
-
-  return isAdminRoute ? <RenderAdminRouter /> : <RenderUserRouter />;
+  const isAgentRoute = location.pathname.startsWith("/agent");
+  return isAdminRoute ? (
+    <RenderAdminRouter />
+  ) : isAgentRoute ? (
+    <AgentDashboard />
+  ) : (
+    <RenderUserRouter />
+  );
 };
 
 export default RouterCustom;

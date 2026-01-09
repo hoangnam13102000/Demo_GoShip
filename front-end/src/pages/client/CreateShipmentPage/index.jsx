@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { FaArrowLeft, FaCheckCircle } from "react-icons/fa";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 
 const STEPS = [
   "Người gửi",
@@ -11,8 +15,11 @@ const STEPS = [
 
 const CreateShipmentPage = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // NEW
   const [params] = useSearchParams();
+
   const shipmentType = params.get("type") || "PACKAGE";
+  const serviceInfo = location.state || {}; // NEW
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -35,6 +42,7 @@ const CreateShipmentPage = () => {
       weight: "",
       note: "",
       shipment_type: shipmentType,
+      service_id: serviceInfo.service_id || null, // NEW
     },
     pricing: null,
     payment_method: "CASH",
@@ -52,14 +60,15 @@ const CreateShipmentPage = () => {
     }));
   };
 
-  const nextStep = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
-  const prevStep = () => setStep((s) => Math.max(s - 1, 0));
+  const nextStep = () =>
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  const prevStep = () =>
+    setStep((s) => Math.max(s - 1, 0));
 
-  /* ================= API MOCK (REPLACE REAL API) ================= */
+  /* ================= API MOCK ================= */
 
   const calculateFee = async () => {
     setLoading(true);
-    // MOCK backend calculate
     await new Promise((r) => setTimeout(r, 600));
     setForm((prev) => ({
       ...prev,
@@ -68,7 +77,9 @@ const CreateShipmentPage = () => {
         weight_fee: Number(prev.package.weight || 0) * 3000,
         tax: 2000,
         total_amount:
-          15000 + Number(prev.package.weight || 0) * 3000 + 2000,
+          15000 +
+          Number(prev.package.weight || 0) * 3000 +
+          2000,
         expected_delivery_date: "2026-01-12",
       },
     }));
@@ -78,9 +89,10 @@ const CreateShipmentPage = () => {
 
   const submitShipment = async () => {
     setLoading(true);
-    // MOCK create shipment
     await new Promise((r) => setTimeout(r, 800));
-    setSuccessTracking("VDL" + Math.floor(Math.random() * 1_000_000_000));
+    setSuccessTracking(
+      "VDL" + Math.floor(Math.random() * 1_000_000_000)
+    );
     setLoading(false);
   };
 
@@ -102,7 +114,7 @@ const CreateShipmentPage = () => {
           </div>
           <button
             onClick={() => navigate("/")}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+            className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold"
           >
             Về trang chủ
           </button>
@@ -114,14 +126,15 @@ const CreateShipmentPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border p-6">
-
         {/* HEADER */}
         <div className="flex items-center gap-3 mb-6">
           <button onClick={() => navigate(-1)}>
             <FaArrowLeft />
           </button>
           <div>
-            <h1 className="text-2xl font-bold">Tạo đơn vận chuyển</h1>
+            <h1 className="text-2xl font-bold">
+              Tạo đơn vận chuyển
+            </h1>
             <p className="text-gray-500 text-sm">
               Dịch vụ: {shipmentType}
             </p>
@@ -146,9 +159,7 @@ const CreateShipmentPage = () => {
           ))}
         </div>
 
-        {/* STEP CONTENT */}
-
-        {/* STEP 1 – SENDER */}
+        {/* STEP 1 */}
         {step === 0 && (
           <div className="space-y-4">
             <input
@@ -172,7 +183,11 @@ const CreateShipmentPage = () => {
               className="input"
               value={form.sender.address}
               onChange={(e) =>
-                updateField("sender", "address", e.target.value)
+                updateField(
+                  "sender",
+                  "address",
+                  e.target.value
+                )
               }
             />
             <input
@@ -189,7 +204,7 @@ const CreateShipmentPage = () => {
           </div>
         )}
 
-        {/* STEP 2 – RECEIVER */}
+        {/* STEP 2 */}
         {step === 1 && (
           <div className="space-y-4">
             <input
@@ -197,7 +212,11 @@ const CreateShipmentPage = () => {
               className="input"
               value={form.receiver.name}
               onChange={(e) =>
-                updateField("receiver", "name", e.target.value)
+                updateField(
+                  "receiver",
+                  "name",
+                  e.target.value
+                )
               }
             />
             <input
@@ -205,7 +224,11 @@ const CreateShipmentPage = () => {
               className="input"
               value={form.receiver.phone}
               onChange={(e) =>
-                updateField("receiver", "phone", e.target.value)
+                updateField(
+                  "receiver",
+                  "phone",
+                  e.target.value
+                )
               }
             />
             <input
@@ -213,7 +236,11 @@ const CreateShipmentPage = () => {
               className="input"
               value={form.receiver.address}
               onChange={(e) =>
-                updateField("receiver", "address", e.target.value)
+                updateField(
+                  "receiver",
+                  "address",
+                  e.target.value
+                )
               }
             />
             <input
@@ -221,7 +248,11 @@ const CreateShipmentPage = () => {
               className="input"
               value={form.receiver.city}
               onChange={(e) =>
-                updateField("receiver", "city", e.target.value)
+                updateField(
+                  "receiver",
+                  "city",
+                  e.target.value
+                )
               }
             />
             <div className="flex justify-between">
@@ -233,7 +264,7 @@ const CreateShipmentPage = () => {
           </div>
         )}
 
-        {/* STEP 3 – PACKAGE */}
+        {/* STEP 3 */}
         {step === 2 && (
           <div className="space-y-4">
             <input
@@ -242,15 +273,23 @@ const CreateShipmentPage = () => {
               className="input"
               value={form.package.weight}
               onChange={(e) =>
-                updateField("package", "weight", e.target.value)
+                updateField(
+                  "package",
+                  "weight",
+                  e.target.value
+                )
               }
             />
             <textarea
-              placeholder="Ghi chú (không bắt buộc)"
+              placeholder="Ghi chú"
               className="input"
               value={form.package.note}
               onChange={(e) =>
-                updateField("package", "note", e.target.value)
+                updateField(
+                  "package",
+                  "note",
+                  e.target.value
+                )
               }
             />
             <div className="flex justify-between">
@@ -266,10 +305,10 @@ const CreateShipmentPage = () => {
           </div>
         )}
 
-        {/* STEP 4 – CONFIRM */}
+        {/* STEP 4 */}
         {step === 3 && form.pricing && (
           <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 p-4 rounded">
               <p>Phí cơ bản: {form.pricing.base_amount}đ</p>
               <p>Phí cân nặng: {form.pricing.weight_fee}đ</p>
               <p>Thuế: {form.pricing.tax}đ</p>
@@ -288,7 +327,9 @@ const CreateShipmentPage = () => {
                 }))
               }
             >
-              <option value="CASH">Thanh toán khi nhận</option>
+              <option value="CASH">
+                Thanh toán khi nhận
+              </option>
               <option value="MOMO">MoMo</option>
               <option value="VNPAY">VNPay</option>
             </select>
@@ -300,14 +341,15 @@ const CreateShipmentPage = () => {
                 className="btn-primary"
                 disabled={loading}
               >
-                {loading ? "Đang tạo đơn..." : "Xác nhận"}
+                {loading
+                  ? "Đang tạo đơn..."
+                  : "Xác nhận"}
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* TAILWIND SHORTCUT */}
       <style>{`
         .input {
           width: 100%;

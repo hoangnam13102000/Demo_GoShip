@@ -26,6 +26,10 @@ export const ROUTERS = {
     BRANCHES: "/admin/quan-ly-chi-nhanh",
     BILL:"/admin/quan-ly-hoa-don",
   },
+  AGENTS:{
+    DASHBOARD: "/agent",
+  }
 };
 
 export const ADMIN_PATH = "/admin";
+export const AGENT_PATH = "/agent";
