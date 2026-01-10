@@ -11,13 +11,13 @@ import {
 } from "react-icons/fa";
 
 const menuItems = [
-  { title: "Dashboard", icon: <FaTachometerAlt />, path: "/admin" },
+  { title: "Dashboard", icon: <FaTachometerAlt />, path: "/agent" },
 
-  { title: "Quản lý vận chuyển", icon: <FaTruck />, path: "/admin/quan-ly-don-hang" },
-  { title: "Doanh thu", icon: <FaMoneyBillWave />, path: "/admin/revenue" },
-  { title: "Quản lý hóa đơn", icon: <FaMoneyBillWave />, path: "/admin/quan-ly-hoa-don" },
-  { title: "Báo cáo", icon: <FaChartBar />, path: "/admin/reports" },
-  { title: "Cài đặt", icon: <FaCog />, path: "/admin/settings" },
+  { title: "Quản lý vận chuyển", icon: <FaTruck />, path: "/agent/quan-ly-don-hang" },
+  { title: "Doanh thu", icon: <FaMoneyBillWave />, path: "/agent/revenue" },
+  { title: "Quản lý hóa đơn", icon: <FaMoneyBillWave />, path: "/agent/quan-ly-hoa-don" },
+  { title: "Báo cáo", icon: <FaChartBar />, path: "/agent/reports" },
+  { title: "Cài đặt", icon: <FaCog />, path: "/agent/settings" },
 ];
 
 const Sidebar = ({ collapsed, setCollapsed }) => {

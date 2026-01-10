@@ -107,7 +107,7 @@ const RouterCustom = () => {
   return isAdminRoute ? (
     <RenderAdminRouter />
   ) : isAgentRoute ? (
-    <AgentDashboard />
+    <RenderAgentRouter />
   ) : (
     <RenderUserRouter />
   );
