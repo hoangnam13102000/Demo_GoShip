@@ -55,7 +55,7 @@ const adminRouter = [
 
 ];
 
-// ================= ADMIN ROUTER =================
+// ================= AGENT ROUTER =================
 const agentRouter = [
   { path: ROUTERS.AGENTS.DASHBOARD, element: <Dashboard /> },
 ];
@@ -71,6 +71,7 @@ const RenderUserRouter = () => (
   </MasterLayout>
 );
 
+<<<<<<< HEAD
 // ================= RENDER AGENT =================
 const RenderAgentRouter = () => (
   <AgentDashboard>
@@ -81,6 +82,17 @@ const RenderAgentRouter = () => (
       <Route path="*" element={<NotFound />} />
     </Routes>
   </AgentDashboard>
+=======
+const RenderAgentRouter = () => (
+  <AgentLayout>
+    <Routes>
+      {agentRouter.map((r) => (
+        <Route key={r.path} path={r.path} element={r.element} />
+      ))}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </AgentLayout>
+>>>>>>> b62283c (next)
 );
 
 // ================= RENDER ADMIN =================
