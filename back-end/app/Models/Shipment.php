@@ -52,9 +52,9 @@ class Shipment extends Model
     }
 
     // Lịch sử trạng thái
-    public function statusHistories()
+    public function shipmentServices()
     {
-        return $this->hasMany(ShipmentStatusHistory::class);
+        return $this->belongsTo(ShipmentService::class);
     }
 
     // Hóa đơn liên quan

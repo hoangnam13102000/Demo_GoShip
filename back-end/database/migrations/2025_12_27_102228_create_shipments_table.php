@@ -12,23 +12,30 @@ return new class extends Migration
             $table->id();
             $table->string('tracking_number')->unique();
 
-            $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
-            $table->foreignId('agent_id')->nullable()->constrained('agents')->onDelete('set null');
-            $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
-            $table->foreignId('current_status_id')->constrained('shipment_statuses')->onDelete('cascade');
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('current_status_id')->constrained('shipment_statuses');
 
+            // Sender
             $table->string('sender_name');
+            $table->string('sender_phone');
             $table->string('sender_address');
-            $table->string('sender_phone')->nullable();
+            $table->string('sender_city');
 
+            // Receiver
             $table->string('receiver_name');
+            $table->string('receiver_phone');
             $table->string('receiver_address');
-            $table->string('receiver_phone')->nullable();
+            $table->string('receiver_city');
 
-            $table->enum('shipment_type', ['DOCUMENT', 'PACKAGE', 'EXPRESS'])->default('PACKAGE');
+            // Service
+            $table->string('shipment_service_code');
+            $table->foreign('shipment_service_code')
+                ->references('code')
+                ->on('shipment_services');
+
             $table->decimal('weight', 8, 2);
-            $table->decimal('charge', 10, 2)->default(0);
-
             $table->date('expected_delivery_date')->nullable();
 
             $table->timestamps();

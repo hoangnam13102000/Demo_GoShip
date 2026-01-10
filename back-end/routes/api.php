@@ -7,7 +7,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\ShipmentController;
-use App\Http\Controllers\Api\ShipmentStatusHistoryController;
 use App\Http\Controllers\Api\ShipmentServiceController;
 
 use App\Http\Controllers\Api\NotificationController;
@@ -16,21 +15,32 @@ use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BillController;
 use App\Http\Controllers\NotificationTemplateController;
 
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
+
+Route::middleware('auth:sanctum')->group(function() {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+
+    Route::middleware('role:ADMIN')->get('/admin/dashboard', function() {
+        return ['message' => 'Admin dashboard'];
+    });
+
+    Route::middleware('role:AGENT')->get('/agent/dashboard', function() {
+        return ['message' => 'Agent dashboard'];
+    });
+
+    Route::middleware('role:USER')->get('/dashboard', function() {
+        return ['message' => 'User dashboard'];
+    });
 });
+
 
 Route::apiResource('accounts', AccountController::class);
 Route::apiResource('customers', CustomerController::class);
 Route::apiResource('agents', AgentController::class);
 Route::apiResource('shipments', ShipmentController::class);
-Route::apiResource('shipment-status-histories', ShipmentStatusHistoryController::class);
 Route::apiResource('notifications', NotificationController::class);
 Route::apiResource('reports', ReportController::class);
 Route::apiResource('branches', BranchController::class);

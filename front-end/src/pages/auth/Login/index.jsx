@@ -18,48 +18,63 @@ const LoginPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
   const [dialogMode, setDialogMode] = useState("success");
+  const [loginRes, setLoginRes] = useState(null); // lưu kết quả login để redirect
 
-  // ================= HANDLE LOGIN =================
   const handleLogin = async () => {
     try {
-      // submit đã gọi loginAPI & lưu user + token
-      await form.submit(() => {
+      await form.submit((res) => {
+        // ✅ Lưu kết quả login trực tiếp
+        setLoginRes(res);
+
+        console.log("=== Login Successful ===");
+        console.log("User info:", res.user);
+        console.log("Role:", res.user?.role);
+        console.log("Email:", res.user?.email);
+        console.log("Access token:", res.access_token);
+
         setDialogMessage("Đăng nhập thành công");
         setDialogMode("success");
         setDialogOpen(true);
       });
     } catch (err) {
+      console.log("=== Login Failed ===", err);
       setDialogMessage("Đăng nhập thất bại");
       setDialogMode("error");
       setDialogOpen(true);
     }
   };
 
-  // ================= HANDLE CLOSE DIALOG =================
   const handleCloseDialog = () => {
     setDialogOpen(false);
 
-    if (dialogMode === "success") {
-      const user = JSON.parse(localStorage.getItem("user"));
+    // ✅ Dùng loginRes để redirect, fallback localStorage nếu null
+    const user = loginRes?.user || JSON.parse(localStorage.getItem("user")) || null;
+    console.log("Redirecting user with role:", user?.role);
 
-      if (user?.role === "USER") {
-        navigate("/");
-      } else if (["ADMIN", "AGENT"].includes(user?.role)) {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
+    if (!user?.role) {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    switch (user.role) {
+      case "USER":
+        navigate("/", { replace: true });
+        break;
+      case "ADMIN":
+        navigate("/admin", { replace: true });
+        break;
+      case "AGENT":
+        navigate("/agent", { replace: true });
+        break;
+      default:
+        navigate("/", { replace: true });
     }
   };
 
   return (
     <>
       <AuthLayout>
-        <AuthHeader
-          title="CourierHub"
-          subtitle="Đăng nhập để quản lý đơn hàng"
-        />
-
+        <AuthHeader title="CourierHub" subtitle="Đăng nhập để quản lý đơn hàng" />
         <div className="p-8 space-y-6">
           <InputField
             label="Email"
@@ -98,10 +113,7 @@ const LoginPage = () => {
             </a>
           </div>
 
-          <SubmitButton
-            loading={form.loading}
-            onClick={handleLogin}
-          >
+          <SubmitButton loading={form.loading} onClick={handleLogin}>
             Đăng nhập
           </SubmitButton>
         </div>
@@ -110,11 +122,7 @@ const LoginPage = () => {
       <DynamicDialog
         open={dialogOpen}
         mode={dialogMode}
-        title={
-          dialogMode === "success"
-            ? "Đăng nhập thành công"
-            : "Lỗi đăng nhập"
-        }
+        title={dialogMode === "success" ? "Đăng nhập thành công" : "Lỗi đăng nhập"}
         message={dialogMessage}
         closeText="Tiếp tục"
         onClose={handleCloseDialog}

@@ -30,5 +30,9 @@ class ShipmentService extends Model
         'base_price' => 'float',
         'max_weight' => 'float',
     ];
+    public function shipments()
+    {
+        return $this->hasMany(Shipment::class, 'shipment_service_id');
+    }
 }
 

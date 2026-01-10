@@ -17,16 +17,17 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call([
-            AccountSeeder::class,
-            BranchSeeder::class,
-            AgentSeeder::class,
-            CustomerSeeder::class,
-            ShipmentStatusSeeder::class,
-            ShipmentSeeder::class,
-            ShipmentStatusHistorySeeder::class,
-            BillSeeder::class,
-            NotificationSeeder::class,
-            ShipmentServiceSeeder::class,
+             AccountSeeder::class,
+        BranchSeeder::class,
+        AgentSeeder::class,
+        CustomerSeeder::class,
+
+        ShipmentServiceSeeder::class,
+        ShipmentStatusSeeder::class,
+
+        ShipmentSeeder::class,      
+        BillSeeder::class,          
+        NotificationSeeder::class,
         ]);
     }
 }

@@ -17,9 +17,9 @@ class Account extends Authenticatable
         'status',
     ];
 
-    protected $hidden = [
-        'password',
-    ];
+    
+    protected $hidden = ['password', 'remember_token'];
+    protected $casts = [];
     public function customer()
     {
         return $this->hasOne(Customer::class);

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   FaTruck,
   FaFileAlt,
@@ -22,6 +22,8 @@ const SERVICE_ICON_MAP = {
 };
 
 const HomePage = () => {
+  const navigate = useNavigate();
+
   /* ================= API ================= */
   const { useGetAll } = useCRUDApi("shipment-services");
 
@@ -46,6 +48,18 @@ const HomePage = () => {
     }
   };
 
+  const handleSelectService = (service) => {
+    navigate(`/tao-don-hang?type=${service.serviceCode}`, {
+      state: {
+        service_id: service.id,
+        service_code: service.serviceCode,
+        service_name: service.title,
+        base_price: service.base_price,
+        features: service.features,
+      },
+    });
+  };
+
   /* ================= MAPPING SERVICE ================= */
   const mappedServices = useMemo(() => {
     return services.map((service) => ({
@@ -56,6 +70,7 @@ const HomePage = () => {
       features: service.features || [],
       price:
         Number(service.base_price).toLocaleString("vi-VN") + "đ",
+      base_price: Number(service.base_price),
       featured: service.is_featured,
       color:
         service.code === "DOCUMENT"
@@ -126,27 +141,20 @@ const HomePage = () => {
           </div>
 
           {isLoading && <p className="text-center">Đang tải...</p>}
-          {isError && <p className="text-center text-red-500">Lỗi tải dữ liệu</p>}
+          {isError && (
+            <p className="text-center text-red-500">
+              Lỗi tải dữ liệu
+            </p>
+          )}
 
           {!isLoading && !isError && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {mappedServices.map((service) => (
-                <Link
+                <ServiceCard
                   key={service.id}
-                  to={`/tao-don-hang?type=${service.serviceCode}`}
-                  state={{
-                    service_id: service.id,
-                    service_code: service.serviceCode,
-                    service_name: service.title,
-                    base_price: service.price,
-                  }}
-                  className="block"
-                >
-                  <ServiceCard
-                    {...service}
-                    onSelect={() => {}}
-                  />
-                </Link>
+                  {...service}
+                  onSelect={() => handleSelectService(service)}
+                />
               ))}
             </div>
           )}
@@ -154,8 +162,6 @@ const HomePage = () => {
       </section>
 
       {/* ================= PROCESS ================= */}
-     
-      {/* Delivery Process */}
       <section className="py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16 lg:mb-20">
@@ -168,71 +174,64 @@ const HomePage = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 relative">
-            {/* Connection Lines */}
             <div className="hidden lg:block absolute top-16 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-blue-500 to-transparent"></div>
 
             {[
-              { step: 1, icon: FaHome, title: 'Tạo đơn hàng', desc: 'Nhập thông tin gửi và nhận' },
-              { step: 2, icon: FaCheckCircle, title: 'Xác nhận', desc: 'Chúng tôi xác nhận thông tin' },
-              { step: 3, icon: FaTruck, title: 'Vận chuyển', desc: 'Hàng được giao an toàn' },
-              { step: 4, icon: FaMapMarkerAlt, title: 'Giao hàng', desc: 'Khách hàng nhận hàng' },
+              { step: 1, icon: FaHome, title: "Tạo đơn hàng", desc: "Nhập thông tin gửi và nhận" },
+              { step: 2, icon: FaCheckCircle, title: "Xác nhận", desc: "Chúng tôi xác nhận thông tin" },
+              { step: 3, icon: FaTruck, title: "Vận chuyển", desc: "Hàng được giao an toàn" },
+              { step: 4, icon: FaMapMarkerAlt, title: "Giao hàng", desc: "Khách hàng nhận hàng" },
             ].map((item, idx) => (
               <div key={idx} className="relative">
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mb-4 sm:mb-6 text-white font-bold text-xl sm:text-2xl shadow-lg hover:shadow-xl transition-shadow">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mb-4 text-white font-bold text-xl shadow-lg">
                     {item.step}
                   </div>
-                  <item.icon className="text-blue-600 text-2xl sm:text-3xl mb-3 sm:mb-4 hidden sm:block" />
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
-                  <p className="text-gray-600 text-sm sm:text-base">{item.desc}</p>
+                  <item.icon className="text-blue-600 text-3xl mb-4" />
+                  <h3 className="text-xl font-bold mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600">
+                    {item.desc}
+                  </p>
                 </div>
-
-                {idx < 3 && (
-                  <div className="hidden lg:flex absolute -right-4 top-8 sm:top-10 text-blue-600 text-2xl sm:text-3xl">
-                    →
-                  </div>
-                )}
-
-                {idx < 3 && (
-                  <div className="lg:hidden flex justify-center mt-4 sm:mt-6 text-blue-600 text-xl sm:text-2xl">
-                    ↓
-                  </div>
-                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Quick Stats */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-50 to-cyan-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            {[
-              { number: '50K+', label: 'Đơn hàng thành công' },
-              { number: '99%', label: 'Tỉ lệ giao đúng hẹn' },
-              { number: '24/7', label: 'Hỗ trợ khách hàng' },
-              { number: '63', label: 'Tỉnh thành phủ sóng' },
-            ].map((stat, idx) => (
-              <div key={idx} className="text-center">
-                <p className="text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-600 mb-2">{stat.number}</p>
-                <p className="text-gray-600 text-sm sm:text-base">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+      {/* ================= STATS ================= */}
+      <section className="py-16 px-4 bg-gradient-to-r from-blue-50 to-cyan-50">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            { number: "50K+", label: "Đơn hàng thành công" },
+            { number: "99%", label: "Tỉ lệ giao đúng hẹn" },
+            { number: "24/7", label: "Hỗ trợ khách hàng" },
+            { number: "63", label: "Tỉnh thành phủ sóng" },
+          ].map((stat, idx) => (
+            <div key={idx} className="text-center">
+              <p className="text-4xl font-bold text-blue-600 mb-2">
+                {stat.number}
+              </p>
+              <p className="text-gray-600">
+                {stat.label}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-blue-700">
+      {/* ================= CTA ================= */}
+      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-blue-700">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
+          <h2 className="text-4xl font-bold text-white mb-6">
             Sẵn sàng gửi hàng ngay hôm nay?
           </h2>
-          <p className="text-blue-100 text-base sm:text-lg lg:text-xl mb-8 sm:mb-10">
+          <p className="text-blue-100 text-lg mb-10">
             Tạo tài khoản miễn phí và nhận ưu đãi 20% cho 10 đơn hàng đầu tiên
           </p>
-          <button className="px-8 sm:px-10 py-4 bg-white text-blue-600 font-bold rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-300 text-base sm:text-lg">
+          <button className="px-10 py-4 bg-white text-blue-600 font-bold rounded-lg hover:shadow-xl hover:scale-105 transition">
             Đăng ký ngay
           </button>
         </div>

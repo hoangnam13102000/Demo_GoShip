@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaArrowLeft, FaCheckCircle } from "react-icons/fa";
-import {
-  useNavigate,
-  useSearchParams,
-  useLocation,
-} from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useCRUDApi } from "../../../api/hooks/useCRUDApi";
+
+/* ================= CONSTANTS ================= */
 
 const STEPS = [
   "Người gửi",
@@ -13,17 +12,35 @@ const STEPS = [
   "Xác nhận & thanh toán",
 ];
 
+/* ================= PAGE ================= */
+
 const CreateShipmentPage = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // NEW
+  const location = useLocation();
   const [params] = useSearchParams();
 
-  const shipmentType = params.get("type") || "PACKAGE";
-  const serviceInfo = location.state || {}; // NEW
+  const shipmentType = params.get("type") || null;
+  const serviceInfo = location.state || null;
+
+  /* ================= API ================= */
+
+  const { useCreate } = useCRUDApi("shipments");
+  const createShipmentMutation = useCreate();
+
+  /* ================= GUARD ================= */
+
+  useEffect(() => {
+    if (!shipmentType) {
+      navigate("/", { replace: true });
+    }
+  }, [shipmentType, navigate]);
+
+  /* ================= STATE ================= */
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [successTracking, setSuccessTracking] = useState(null);
+  const [error, setError] = useState(null);
 
   const [form, setForm] = useState({
     sender: {
@@ -42,13 +59,12 @@ const CreateShipmentPage = () => {
       weight: "",
       note: "",
       shipment_type: shipmentType,
-      service_id: serviceInfo.service_id || null, // NEW
     },
     pricing: null,
     payment_method: "CASH",
   });
 
-  /* ================= HANDLERS ================= */
+  /* ================= HELPERS ================= */
 
   const updateField = (section, field, value) => {
     setForm((prev) => ({
@@ -65,38 +81,92 @@ const CreateShipmentPage = () => {
   const prevStep = () =>
     setStep((s) => Math.max(s - 1, 0));
 
-  /* ================= API MOCK ================= */
+  /* ================= CALCULATE FEE (GIỮ HÀM – ĐỔI NỘI DUNG) ================= */
 
   const calculateFee = async () => {
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    setForm((prev) => ({
-      ...prev,
-      pricing: {
-        base_amount: 15000,
-        weight_fee: Number(prev.package.weight || 0) * 3000,
-        tax: 2000,
-        total_amount:
-          15000 +
-          Number(prev.package.weight || 0) * 3000 +
-          2000,
-        expected_delivery_date: "2026-01-12",
-      },
-    }));
-    setLoading(false);
-    nextStep();
+    try {
+      setLoading(true);
+      setError(null);
+
+      const weight = Number(form.package.weight) || 0;
+      let base = 0;
+      let perKg = 0;
+
+      switch (form.package.shipment_type) {
+        case "Standard":
+          base = 10000;
+          perKg = 5000;
+          break;
+        case "Express":
+          base = 20000;
+          perKg = 8000;
+          break;
+        case "SameDay":
+          base = 30000;
+          perKg = 12000;
+          break;
+        default:
+          base = 0;
+          perKg = 0;
+      }
+
+      const fee = base + weight * perKg;
+
+      /* 🔴 GIỮ LOGIC CŨ: set pricing + nextStep */
+      setForm((prev) => ({
+        ...prev,
+        pricing: {
+          base_amount: base,
+          weight_fee: weight * perKg,
+          tax: 0,
+          total_amount: fee,
+        },
+      }));
+
+      nextStep();
+    } catch (err) {
+      setError("Không thể tính phí. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  /* ================= SUBMIT SHIPMENT (RESOURCE STORE) ================= */
 
   const submitShipment = async () => {
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSuccessTracking(
-      "VDL" + Math.floor(Math.random() * 1_000_000_000)
-    );
-    setLoading(false);
+    try {
+      setLoading(true);
+      setError(null);
+
+      const payload = {
+        tracking_code: `TRK${Date.now()}`,
+
+        sender_name: form.sender.name,
+        sender_address: form.sender.address,
+        sender_phone: form.sender.phone,
+
+        receiver_name: form.receiver.name,
+        receiver_address: form.receiver.address,
+        receiver_phone: form.receiver.phone,
+
+        shipment_type: form.package.shipment_type,
+        weight: Number(form.package.weight),
+        fee: form.pricing.total_amount,
+
+        status: "PLACED",
+      };
+
+      const res = await createShipmentMutation.mutateAsync(payload);
+
+      setSuccessTracking(res.tracking_code);
+    } catch (err) {
+      setError("Tạo đơn thất bại. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* ================= UI ================= */
+  /* ================= SUCCESS ================= */
 
   if (successTracking) {
     return (
@@ -123,6 +193,8 @@ const CreateShipmentPage = () => {
     );
   }
 
+  /* ================= UI ================= */
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border p-6">
@@ -136,14 +208,14 @@ const CreateShipmentPage = () => {
               Tạo đơn vận chuyển
             </h1>
             <p className="text-gray-500 text-sm">
-              Dịch vụ: {shipmentType}
+              Loại: {form.package.shipment_type}
             </p>
           </div>
         </div>
 
         {/* STEPPER */}
         <div className="flex justify-between mb-8">
-          {STEPS.map((s, i) => (
+          {STEPS.map((label, i) => (
             <div
               key={i}
               className={`text-sm font-medium ${
@@ -154,45 +226,39 @@ const CreateShipmentPage = () => {
                   : "text-gray-400"
               }`}
             >
-              {i + 1}. {s}
+              {i + 1}. {label}
             </div>
           ))}
         </div>
 
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border text-red-600 rounded">
+            {error}
+          </div>
+        )}
+
         {/* STEP 1 */}
         {step === 0 && (
           <div className="space-y-4">
-            <input
-              placeholder="Tên người gửi"
-              className="input"
+            <input className="input" placeholder="Tên người gửi"
               value={form.sender.name}
               onChange={(e) =>
                 updateField("sender", "name", e.target.value)
               }
             />
-            <input
-              placeholder="Số điện thoại"
-              className="input"
+            <input className="input" placeholder="Số điện thoại"
               value={form.sender.phone}
               onChange={(e) =>
                 updateField("sender", "phone", e.target.value)
               }
             />
-            <input
-              placeholder="Địa chỉ"
-              className="input"
+            <input className="input" placeholder="Địa chỉ"
               value={form.sender.address}
               onChange={(e) =>
-                updateField(
-                  "sender",
-                  "address",
-                  e.target.value
-                )
+                updateField("sender", "address", e.target.value)
               }
             />
-            <input
-              placeholder="Tỉnh / Thành phố"
-              className="input"
+            <input className="input" placeholder="Thành phố"
               value={form.sender.city}
               onChange={(e) =>
                 updateField("sender", "city", e.target.value)
@@ -207,52 +273,28 @@ const CreateShipmentPage = () => {
         {/* STEP 2 */}
         {step === 1 && (
           <div className="space-y-4">
-            <input
-              placeholder="Tên người nhận"
-              className="input"
+            <input className="input" placeholder="Tên người nhận"
               value={form.receiver.name}
               onChange={(e) =>
-                updateField(
-                  "receiver",
-                  "name",
-                  e.target.value
-                )
+                updateField("receiver", "name", e.target.value)
               }
             />
-            <input
-              placeholder="Số điện thoại"
-              className="input"
+            <input className="input" placeholder="Số điện thoại"
               value={form.receiver.phone}
               onChange={(e) =>
-                updateField(
-                  "receiver",
-                  "phone",
-                  e.target.value
-                )
+                updateField("receiver", "phone", e.target.value)
               }
             />
-            <input
-              placeholder="Địa chỉ"
-              className="input"
+            <input className="input" placeholder="Địa chỉ"
               value={form.receiver.address}
               onChange={(e) =>
-                updateField(
-                  "receiver",
-                  "address",
-                  e.target.value
-                )
+                updateField("receiver", "address", e.target.value)
               }
             />
-            <input
-              placeholder="Tỉnh / Thành phố"
-              className="input"
+            <input className="input" placeholder="Thành phố"
               value={form.receiver.city}
               onChange={(e) =>
-                updateField(
-                  "receiver",
-                  "city",
-                  e.target.value
-                )
+                updateField("receiver", "city", e.target.value)
               }
             />
             <div className="flex justify-between">
@@ -269,27 +311,19 @@ const CreateShipmentPage = () => {
           <div className="space-y-4">
             <input
               type="number"
-              placeholder="Trọng lượng (kg)"
               className="input"
+              placeholder="Trọng lượng (kg)"
               value={form.package.weight}
               onChange={(e) =>
-                updateField(
-                  "package",
-                  "weight",
-                  e.target.value
-                )
+                updateField("package", "weight", e.target.value)
               }
             />
             <textarea
-              placeholder="Ghi chú"
               className="input"
+              placeholder="Ghi chú"
               value={form.package.note}
               onChange={(e) =>
-                updateField(
-                  "package",
-                  "note",
-                  e.target.value
-                )
+                updateField("package", "note", e.target.value)
               }
             />
             <div className="flex justify-between">
@@ -311,28 +345,10 @@ const CreateShipmentPage = () => {
             <div className="bg-gray-50 p-4 rounded">
               <p>Phí cơ bản: {form.pricing.base_amount}đ</p>
               <p>Phí cân nặng: {form.pricing.weight_fee}đ</p>
-              <p>Thuế: {form.pricing.tax}đ</p>
               <p className="font-bold">
                 Tổng: {form.pricing.total_amount}đ
               </p>
             </div>
-
-            <select
-              className="input"
-              value={form.payment_method}
-              onChange={(e) =>
-                setForm((p) => ({
-                  ...p,
-                  payment_method: e.target.value,
-                }))
-              }
-            >
-              <option value="CASH">
-                Thanh toán khi nhận
-              </option>
-              <option value="MOMO">MoMo</option>
-              <option value="VNPAY">VNPay</option>
-            </select>
 
             <div className="flex justify-between">
               <button onClick={prevStep}>Quay lại</button>
@@ -341,30 +357,12 @@ const CreateShipmentPage = () => {
                 className="btn-primary"
                 disabled={loading}
               >
-                {loading
-                  ? "Đang tạo đơn..."
-                  : "Xác nhận"}
+                {loading ? "Đang tạo đơn..." : "Xác nhận"}
               </button>
             </div>
           </div>
         )}
       </div>
-
-      <style>{`
-        .input {
-          width: 100%;
-          padding: 12px;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-        }
-        .btn-primary {
-          background: #2563eb;
-          color: white;
-          padding: 12px 16px;
-          border-radius: 8px;
-          font-weight: 600;
-        }
-      `}</style>
     </div>
   );
 };
