@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
         ShipmentSeeder::class,      
         BillSeeder::class,          
         NotificationSeeder::class,
+        TrackingSeeder::class,
         ]);
     }
 }
