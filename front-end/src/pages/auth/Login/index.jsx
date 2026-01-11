@@ -18,7 +18,7 @@ const LoginPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
   const [dialogMode, setDialogMode] = useState("success");
-  const [loginRes, setLoginRes] = useState(null); 
+  const [loginRes, setLoginRes] = useState(null);
 
   const handleLogin = async () => {
     try {
@@ -45,7 +45,8 @@ const LoginPage = () => {
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
-    const user = loginRes?.user || JSON.parse(localStorage.getItem("user")) || null;
+    const user =
+      loginRes?.user || JSON.parse(localStorage.getItem("user")) || null;
     console.log("Redirecting user with role:", user?.role);
 
     if (!user?.role) {
@@ -71,7 +72,10 @@ const LoginPage = () => {
   return (
     <>
       <AuthLayout>
-        <AuthHeader title="CourierHub" subtitle="Đăng nhập để quản lý đơn hàng" />
+        <AuthHeader
+          title="CourierHub"
+          subtitle="Đăng nhập để quản lý đơn hàng"
+        />
         <div className="p-8 space-y-6">
           <InputField
             label="Email"
@@ -90,7 +94,7 @@ const LoginPage = () => {
             type={showPassword ? "text" : "password"}
             icon={FaLock}
             value={form.values.password}
-            onChange={(e) => form.setField("password", e.target.value)}
+            onChange={(value) => form.setField("password", value)} // ✅ FIX
             placeholder="Nhập mật khẩu"
             error={form.errors.password}
             rightElement={
@@ -119,7 +123,9 @@ const LoginPage = () => {
       <DynamicDialog
         open={dialogOpen}
         mode={dialogMode}
-        title={dialogMode === "success" ? "Đăng nhập thành công" : "Lỗi đăng nhập"}
+        title={
+          dialogMode === "success" ? "Đăng nhập thành công" : "Lỗi đăng nhập"
+        }
         message={dialogMessage}
         closeText="Tiếp tục"
         onClose={handleCloseDialog}

@@ -15,6 +15,12 @@ const InputField = ({
 }) => {
   const [open, setOpen] = useState(false);
 
+  const handleChange = (e) => {
+    // 🔒 Chuẩn hoá: luôn trả primitive
+    const val = e?.target?.value ?? "";
+    onChange?.(val);
+  };
+
   return (
     <div className="relative">
       <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -30,8 +36,8 @@ const InputField = ({
 
         <input
           type={type}
-          value={value}
-          onChange={onChange}
+          value={value ?? ""}   // 🔒 chống object / undefined
+          onChange={handleChange}
           onFocus={() => remember && setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder={placeholder}
@@ -51,7 +57,10 @@ const InputField = ({
           {suggestions.map((item, index) => (
             <div
               key={index}
-              onClick={() => onSelectSuggestion(item)}
+              onClick={() => {
+                onSelectSuggestion?.(item);
+                setOpen(false);
+              }}
               className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm"
             >
               {item}

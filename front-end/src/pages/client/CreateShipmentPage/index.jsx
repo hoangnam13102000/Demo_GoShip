@@ -1,367 +1,232 @@
-import { useState, useEffect } from "react";
-import { FaArrowLeft, FaCheckCircle } from "react-icons/fa";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { useCRUDApi } from "../../../api/hooks/useCRUDApi";
-
-/* ================= CONSTANTS ================= */
-
-const STEPS = [
-  "Người gửi",
-  "Người nhận",
-  "Thông tin hàng",
-  "Xác nhận & thanh toán",
-];
-
-/* ================= PAGE ================= */
+import { useState } from "react";
+import Stepper from "./components/Stepper";
+import SenderInfo from "./components/SenderForm";
+import ReceiverInfo from "./components/ReceiverInfo";
+import PackageInfo from "./components/PackageInfo";
+import SummaryStep from "./components/SummaryStep";
+import SuccessScreen from "./components/SuccessScreen";
+import PrevButton from "../../../components/common/buttons/PrevButton";
+import NextButton from "../../../components/common/buttons/NextButton";
+import { FieldValidator } from "../../../utils/hooks/validate";
+import {
+  FaArrowLeft,
+  FaExclamationCircle,
+  FaBox,
+  FaUser,
+  FaCheck,
+  FaMoneyBillWave,
+  FaCreditCard,
+  FaUniversity,
+} from "react-icons/fa";
 
 const CreateShipmentPage = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [params] = useSearchParams();
-
-  const shipmentType = params.get("type") || null;
-  const serviceInfo = location.state || null;
-
-  /* ================= API ================= */
-
-  const { useCreate } = useCRUDApi("shipments");
-  const createShipmentMutation = useCreate();
-
-  /* ================= GUARD ================= */
-
-  useEffect(() => {
-    if (!shipmentType) {
-      navigate("/", { replace: true });
-    }
-  }, [shipmentType, navigate]);
-
-  /* ================= STATE ================= */
-
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [successTracking, setSuccessTracking] = useState(null);
-  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [errors, setErrors] = useState({});
+
+  const STEPS = [
+    { label: "Người gửi", icon: FaUser },
+    { label: "Người nhận", icon: FaUser },
+    { label: "Thông tin hàng", icon: FaBox },
+    { label: "Xác nhận", icon: FaExclamationCircle },
+  ];
+
+  const SHIPMENT_TYPES = [
+    {
+      id: "STANDARD",
+      label: "Tiêu chuẩn",
+      time: "3-5 ngày",
+      base: 10000,
+      kg: 5000,
+    },
+    { id: "EXPRESS", label: "Nhanh", time: "1-2 ngày", base: 20000, kg: 8000 },
+    {
+      id: "SAME_DAY",
+      label: "Cùng ngày",
+      time: "4-6 giờ",
+      base: 30000,
+      kg: 12000,
+    },
+  ];
+
+  const PAYMENT_METHODS = [
+    {
+      id: "CASH",
+      label: "Tiền mặt",
+      icon: FaMoneyBillWave,
+      color: "text-green-600",
+    },
+    {
+      id: "CARD",
+      label: "Thẻ tín dụng",
+      icon: FaCreditCard,
+      color: "text-blue-600",
+    },
+    {
+      id: "BANK",
+      label: "Chuyển khoản",
+      icon: FaUniversity,
+      color: "text-purple-600",
+    },
+  ];
 
   const [form, setForm] = useState({
+    shipmentType: "STANDARD",
     sender: {
       name: "",
       phone: "",
+      email: "",
       address: "",
       city: "",
+      postcode: "",
     },
     receiver: {
       name: "",
       phone: "",
+      email: "",
       address: "",
       city: "",
+      postcode: "",
     },
     package: {
       weight: "",
-      note: "",
-      shipment_type: shipmentType,
+      length: "",
+      width: "",
+      height: "",
+      description: "",
+      fragile: false,
     },
-    pricing: null,
-    payment_method: "CASH",
+    payment: "CASH",
   });
 
-  /* ================= HELPERS ================= */
-
-  const updateField = (section, field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
-    }));
+  const validateStep = (cur) => {
+    const n = FieldValidator.validateStep(cur, form);
+    setErrors(n);
+    return Object.keys(n).length === 0;
   };
 
-  const nextStep = () =>
-    setStep((s) => Math.min(s + 1, STEPS.length - 1));
-  const prevStep = () =>
-    setStep((s) => Math.max(s - 1, 0));
+  const handleNext = () => {
+    validateStep(step) && setStep(step + 1);
+  };
 
-  /* ================= CALCULATE FEE (GIỮ HÀM – ĐỔI NỘI DUNG) ================= */
+  const handlePrev = () => setStep(Math.max(0, step - 1));
 
-  const calculateFee = async () => {
+  const updateForm = (section, field, value) => {
+    setForm((p) => ({ ...p, [section]: { ...p[section], [field]: value } }));
+    const key = `${section}${field.charAt(0).toUpperCase() + field.slice(1)}`;
+    errors[key] &&
+      setErrors((p) => {
+        delete p[key];
+        return { ...p };
+      });
+  };
+
+  const calculateFee = () => {
+    const s = SHIPMENT_TYPES.find((t) => t.id === form.shipmentType);
+    const fragile = form.package.fragile ? 5000 : 0;
+    return s.base + (parseFloat(form.package.weight) || 0) * s.kg + fragile;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep(3)) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-
-      const weight = Number(form.package.weight) || 0;
-      let base = 0;
-      let perKg = 0;
-
-      switch (form.package.shipment_type) {
-        case "Standard":
-          base = 10000;
-          perKg = 5000;
-          break;
-        case "Express":
-          base = 20000;
-          perKg = 8000;
-          break;
-        case "SameDay":
-          base = 30000;
-          perKg = 12000;
-          break;
-        default:
-          base = 0;
-          perKg = 0;
-      }
-
-      const fee = base + weight * perKg;
-
-      /* 🔴 GIỮ LOGIC CŨ: set pricing + nextStep */
-      setForm((prev) => ({
-        ...prev,
-        pricing: {
-          base_amount: base,
-          weight_fee: weight * perKg,
-          tax: 0,
-          total_amount: fee,
-        },
-      }));
-
-      nextStep();
-    } catch (err) {
-      setError("Không thể tính phí. Vui lòng thử lại.");
+      await new Promise((r) => setTimeout(r, 1200));
+      setSuccess({
+        tracking: `TRK${Date.now()}`,
+        fee: calculateFee(),
+      });
+    } catch (e) {
+      setErrors({ submit: "Tạo đơn thất bại. Vui lòng thử lại." });
     } finally {
       setLoading(false);
     }
   };
 
-  /* ================= SUBMIT SHIPMENT (RESOURCE STORE) ================= */
-
-  const submitShipment = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const payload = {
-        tracking_code: `TRK${Date.now()}`,
-
-        sender_name: form.sender.name,
-        sender_address: form.sender.address,
-        sender_phone: form.sender.phone,
-
-        receiver_name: form.receiver.name,
-        receiver_address: form.receiver.address,
-        receiver_phone: form.receiver.phone,
-
-        shipment_type: form.package.shipment_type,
-        weight: Number(form.package.weight),
-        fee: form.pricing.total_amount,
-
-        status: "PLACED",
-      };
-
-      const res = await createShipmentMutation.mutateAsync(payload);
-
-      setSuccessTracking(res.tracking_code);
-    } catch (err) {
-      setError("Tạo đơn thất bại. Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ================= SUCCESS ================= */
-
-  if (successTracking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-          <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">
-            Tạo đơn hàng thành công
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Mã vận đơn của bạn:
-          </p>
-          <div className="text-xl font-mono font-bold mb-6">
-            {successTracking}
-          </div>
-          <button
-            onClick={() => navigate("/")}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold"
-          >
-            Về trang chủ
-          </button>
-        </div>
-      </div>
-    );
+  if (success) {
+    return <SuccessScreen tracking={success.tracking} fee={success.fee} />;
   }
 
-  /* ================= UI ================= */
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border p-6">
-        {/* HEADER */}
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate(-1)}>
-            <FaArrowLeft />
+    <div className="min-h-screen bg-gray-50 py-6 px-4 sm:py-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 hover:bg-gray-200 rounded-lg transition"
+          >
+            <FaArrowLeft className="text-xl text-gray-700" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-3xl font-bold text-gray-900">
               Tạo đơn vận chuyển
             </h1>
-            <p className="text-gray-500 text-sm">
-              Loại: {form.package.shipment_type}
+            <p className="text-gray-500 text-sm mt-1">
+              {SHIPMENT_TYPES.find((s) => s.id === form.shipmentType)?.label}
             </p>
           </div>
         </div>
 
-        {/* STEPPER */}
-        <div className="flex justify-between mb-8">
-          {STEPS.map((label, i) => (
-            <div
-              key={i}
-              className={`text-sm font-medium ${
-                i === step
-                  ? "text-blue-600"
-                  : i < step
-                  ? "text-green-600"
-                  : "text-gray-400"
-              }`}
-            >
-              {i + 1}. {label}
+        {/* Stepper Component */}
+        <Stepper steps={STEPS} currentStep={step} />
+
+        {/* Form */}
+        <div className="bg-white rounded-2xl shadow border border-gray-200 p-6 sm:p-8">
+          {errors.submit && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex gap-2">
+              <FaExclamationCircle className="text-2xl text-red-600 flex-shrink-0" />
+              <p className="text-red-700 text-sm">{errors.submit}</p>
             </div>
-          ))}
+          )}
+
+          {/* STEP 0: Sender */}
+          {step === 0 && (
+            <SenderInfo form={form} errors={errors} updateForm={updateForm} />
+          )}
+
+          {/* STEP 1: Receiver */}
+          {step === 1 && (
+            <ReceiverInfo form={form} errors={errors} updateForm={updateForm} />
+          )}
+
+          {/* STEP 2: Package */}
+          {step === 2 && (
+            <PackageInfo
+              form={form}
+              errors={errors}
+              updateForm={updateForm}
+              shipmentTypes={SHIPMENT_TYPES}
+            />
+          )}
+
+          {/* STEP 3: Summary */}
+          {step === 3 && (
+            <SummaryStep
+              form={form}
+              shipmentTypes={SHIPMENT_TYPES}
+              paymentMethods={PAYMENT_METHODS}
+            />
+          )}
+
+          {/* Buttons */}
+          <div className="flex gap-4 mt-8">
+            <PrevButton onClick={handlePrev} disabled={step === 0 || loading} />
+            <NextButton
+              onClick={step === 3 ? handleSubmit : handleNext}
+              disabled={loading}
+              loading={loading}
+              label={step === 3 ? "Xác nhận & tạo đơn" : "Tiếp tục"}
+              loadingText={step === 3 ? "Đang tạo..." : "Đang xử lý..."}
+              icon={step === 3 ? FaCheck : undefined}
+              showRightIcon={step !== 3}
+              variant="primary"
+              size="md"
+              fullWidth={true}
+            />
+          </div>
         </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border text-red-600 rounded">
-            {error}
-          </div>
-        )}
-
-        {/* STEP 1 */}
-        {step === 0 && (
-          <div className="space-y-4">
-            <input className="input" placeholder="Tên người gửi"
-              value={form.sender.name}
-              onChange={(e) =>
-                updateField("sender", "name", e.target.value)
-              }
-            />
-            <input className="input" placeholder="Số điện thoại"
-              value={form.sender.phone}
-              onChange={(e) =>
-                updateField("sender", "phone", e.target.value)
-              }
-            />
-            <input className="input" placeholder="Địa chỉ"
-              value={form.sender.address}
-              onChange={(e) =>
-                updateField("sender", "address", e.target.value)
-              }
-            />
-            <input className="input" placeholder="Thành phố"
-              value={form.sender.city}
-              onChange={(e) =>
-                updateField("sender", "city", e.target.value)
-              }
-            />
-            <button onClick={nextStep} className="btn-primary">
-              Tiếp tục
-            </button>
-          </div>
-        )}
-
-        {/* STEP 2 */}
-        {step === 1 && (
-          <div className="space-y-4">
-            <input className="input" placeholder="Tên người nhận"
-              value={form.receiver.name}
-              onChange={(e) =>
-                updateField("receiver", "name", e.target.value)
-              }
-            />
-            <input className="input" placeholder="Số điện thoại"
-              value={form.receiver.phone}
-              onChange={(e) =>
-                updateField("receiver", "phone", e.target.value)
-              }
-            />
-            <input className="input" placeholder="Địa chỉ"
-              value={form.receiver.address}
-              onChange={(e) =>
-                updateField("receiver", "address", e.target.value)
-              }
-            />
-            <input className="input" placeholder="Thành phố"
-              value={form.receiver.city}
-              onChange={(e) =>
-                updateField("receiver", "city", e.target.value)
-              }
-            />
-            <div className="flex justify-between">
-              <button onClick={prevStep}>Quay lại</button>
-              <button onClick={nextStep} className="btn-primary">
-                Tiếp tục
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3 */}
-        {step === 2 && (
-          <div className="space-y-4">
-            <input
-              type="number"
-              className="input"
-              placeholder="Trọng lượng (kg)"
-              value={form.package.weight}
-              onChange={(e) =>
-                updateField("package", "weight", e.target.value)
-              }
-            />
-            <textarea
-              className="input"
-              placeholder="Ghi chú"
-              value={form.package.note}
-              onChange={(e) =>
-                updateField("package", "note", e.target.value)
-              }
-            />
-            <div className="flex justify-between">
-              <button onClick={prevStep}>Quay lại</button>
-              <button
-                onClick={calculateFee}
-                className="btn-primary"
-                disabled={loading}
-              >
-                {loading ? "Đang tính phí..." : "Tính phí"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4 */}
-        {step === 3 && form.pricing && (
-          <div className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded">
-              <p>Phí cơ bản: {form.pricing.base_amount}đ</p>
-              <p>Phí cân nặng: {form.pricing.weight_fee}đ</p>
-              <p className="font-bold">
-                Tổng: {form.pricing.total_amount}đ
-              </p>
-            </div>
-
-            <div className="flex justify-between">
-              <button onClick={prevStep}>Quay lại</button>
-              <button
-                onClick={submitShipment}
-                className="btn-primary"
-                disabled={loading}
-              >
-                {loading ? "Đang tạo đơn..." : "Xác nhận"}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

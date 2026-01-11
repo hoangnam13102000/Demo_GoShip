@@ -25,5 +25,6 @@ export const validateAuth = (values, mode = "login") => {
     }
   }
 
+  //
   return errors;
 };
