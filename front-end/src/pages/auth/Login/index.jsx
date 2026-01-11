@@ -18,12 +18,11 @@ const LoginPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
   const [dialogMode, setDialogMode] = useState("success");
-  const [loginRes, setLoginRes] = useState(null); // lưu kết quả login để redirect
+  const [loginRes, setLoginRes] = useState(null); 
 
   const handleLogin = async () => {
     try {
       await form.submit((res) => {
-        // ✅ Lưu kết quả login trực tiếp
         setLoginRes(res);
 
         console.log("=== Login Successful ===");
@@ -46,8 +45,6 @@ const LoginPage = () => {
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
-
-    // ✅ Dùng loginRes để redirect, fallback localStorage nếu null
     const user = loginRes?.user || JSON.parse(localStorage.getItem("user")) || null;
     console.log("Redirecting user with role:", user?.role);
 

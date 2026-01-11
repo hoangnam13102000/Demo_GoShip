@@ -1,5 +1,8 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ROUTERS } from "./Router";
+import ProtectedRoute from "./auth/ProtectedRoute.jsx";
+import RoleRoute from "./RoleRouter.jsx";
+import GuestRoute from "./GuestRole.jsx";
 
 // ===== USER =====
 import MasterLayout from "../pages/client/Layout";
@@ -28,6 +31,7 @@ import AdminBillsPage from "../pages/admin/AdminBillsPage/index.jsx";
 
 // ===== AGENT =====
 import AgentDashboard from "../pages/agent/Layout";
+
 // ================= USER ROUTER =================
 const userRouter = [
   { path: ROUTERS.USER.HOME, element: <HomePage /> },
@@ -52,20 +56,57 @@ const adminRouter = [
   { path: ROUTERS.ADMIN.SHIPMENTS, element: <AdminShipmentsPage /> },
   { path: ROUTERS.ADMIN.BRANCHES, element: <AdminBranchesPage /> },
   { path: ROUTERS.ADMIN.BILL, element: <AdminBillsPage /> },
-
 ];
 
-// ================= ADMIN ROUTER =================
+// ================= AGENT ROUTER =================
 const agentRouter = [
   { path: ROUTERS.AGENTS.DASHBOARD, element: <Dashboard /> },
 ];
+
 // ================= RENDER USER =================
 const RenderUserRouter = () => (
   <MasterLayout>
     <Routes>
-      {userRouter.map((item, index) => (
-        <Route key={index} path={item.path} element={item.element} />
-      ))}
+      {userRouter.map((item, index) => {
+        // LOGIN / REGISTER / FORGOT → chỉ cho guest
+        if (
+          item.path === ROUTERS.USER.LOGIN ||
+          item.path === ROUTERS.USER.REGISTER ||
+          item.path === ROUTERS.USER.FORGOTPASSWORD
+        ) {
+          return (
+            <Route
+              key={index}
+              path={item.path}
+              element={<GuestRoute>{item.element}</GuestRoute>}
+            />
+          );
+        }
+
+        // CREATE SHIPMENT / TRACKING → cần login
+        if (
+          item.path === ROUTERS.USER.CREATESHIPMENTPAGE ||
+          item.path === ROUTERS.USER.TRACKINGPAGE
+        ) {
+          return (
+            <Route
+              key={index}
+              path={item.path}
+              element={<ProtectedRoute>{item.element}</ProtectedRoute>}
+            />
+          );
+        }
+
+        // Còn lại public
+        return (
+          <Route
+            key={index}
+            path={item.path}
+            element={item.element}
+          />
+        );
+      })}
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   </MasterLayout>
@@ -76,7 +117,17 @@ const RenderAgentRouter = () => (
   <AgentDashboard>
     <Routes>
       {agentRouter.map((item, index) => (
-        <Route key={index} path={item.path} element={item.element} />
+        <Route
+          key={index}
+          path={item.path}
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowRoles={["AGENT"]}>
+                {item.element}
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
       ))}
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -90,8 +141,15 @@ const RenderAdminRouter = () => (
       {adminRouter.map((item, index) => (
         <Route
           key={index}
-          path={item.path}   // path now = "dashboard"
-          element={item.element}/>
+          path={item.path}
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowRoles={["ADMIN"]}>
+                {item.element}
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
       ))}
 
       <Route path="*" element={<NotFound />} />
@@ -104,6 +162,7 @@ const RouterCustom = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isAgentRoute = location.pathname.startsWith("/agent");
+
   return isAdminRoute ? (
     <RenderAdminRouter />
   ) : isAgentRoute ? (
