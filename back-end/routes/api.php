@@ -15,6 +15,10 @@ use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BillController;
 use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\DashboardController;
+
+
+
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -40,6 +44,11 @@ Route::middleware('auth:sanctum')->group(function() {
     
 });
 
+Route::get('/dashboard/revenue', [DashboardController::class, 'revenueLast12Months']);
+Route::get('/dashboard/top-customers', [DashboardController::class, 'topCustomers']);
+Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
+Route::get('/dashboard/top-services', [DashboardController::class, 'topServices']);
+Route::get('/dashboard/export', [DashboardController::class, 'exportExcel']);
 
 Route::apiResource('accounts', AccountController::class);
 Route::apiResource('customers', CustomerController::class);

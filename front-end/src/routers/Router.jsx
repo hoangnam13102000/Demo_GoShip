@@ -25,6 +25,7 @@ export const ROUTERS = {
     SHIPMENTS: "/admin/quan-ly-don-hang",
     BRANCHES: "/admin/quan-ly-chi-nhanh",
     BILL: "/admin/quan-ly-hoa-don",
+    REPORT: "/admin/bao-cao",
   },
   AGENTS: {
     DASHBOARD: "/agent",

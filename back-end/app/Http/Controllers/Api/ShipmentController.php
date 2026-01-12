@@ -147,7 +147,7 @@ class ShipmentController extends Controller
             'trackingHistory.status',
             'trackingHistory.branch',
             'trackingHistory.updater',
-            'service' // nếu bạn có quan hệ shipment_service
+            'service' 
         ])
             ->where('customer_id', $customerId)
             ->orderBy('created_at', 'desc')

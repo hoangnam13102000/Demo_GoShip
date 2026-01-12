@@ -23,7 +23,7 @@ const RegisterPage = () => {
 
   return (
     <AuthLayout>
-      <AuthHeader title="CourierHub" subtitle="Tạo tài khoản mới" />
+      <AuthHeader title="GoShip" subtitle="Tạo tài khoản mới" />
 
       <div className="p-8 space-y-6">
         {/* Email */}

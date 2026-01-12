@@ -29,6 +29,7 @@ import AdminShipmentServicesPage from "../pages/admin/AdminShipmentServicesPage"
 import AdminShipmentsPage from "../pages/admin/AdminShipmentsPage/index.jsx";
 import AdminBranchesPage from "../pages/admin/AdminBranchesPage/index.jsx";
 import AdminBillsPage from "../pages/admin/AdminBillsPage/index.jsx";
+import DashboardReport from "../pages/admin/ReportAdminPage"
 
 // ===== AGENT =====
 import AgentDashboard from "../pages/agent/Layout";
@@ -60,6 +61,7 @@ const adminRouter = [
   { path: ROUTERS.ADMIN.SHIPMENTS, element: <AdminShipmentsPage /> },
   { path: ROUTERS.ADMIN.BRANCHES, element: <AdminBranchesPage /> },
   { path: ROUTERS.ADMIN.BILL, element: <AdminBillsPage /> },
+  { path: ROUTERS.ADMIN.REPORT, element: <DashboardReport /> }
 ];
 
 // ================= AGENT ROUTER =================

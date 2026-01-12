@@ -20,7 +20,7 @@ const menuItems = [
   { title: "Quản lý vận chuyển", icon: <FaTruck />, path: "/admin/quan-ly-don-hang" },
   { title: "Doanh thu", icon: <FaMoneyBillWave />, path: "/admin/revenue" },
   { title: "Quản lý hóa đơn", icon: <FaMoneyBillWave />, path: "/admin/quan-ly-hoa-don" },
-  { title: "Báo cáo", icon: <FaChartBar />, path: "/admin/reports" },
+  { title: "Báo cáo", icon: <FaChartBar />, path: "/admin/bao-cao" },
   { title: "Cài đặt", icon: <FaCog />, path: "/admin/settings" },
 ];
 

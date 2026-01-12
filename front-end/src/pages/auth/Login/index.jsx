@@ -73,7 +73,7 @@ const LoginPage = () => {
     <>
       <AuthLayout>
         <AuthHeader
-          title="CourierHub"
+          title="GoShip"
           subtitle="Đăng nhập để quản lý đơn hàng"
         />
         <div className="p-8 space-y-6">
