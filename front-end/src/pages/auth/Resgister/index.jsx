@@ -31,7 +31,7 @@ const RegisterPage = () => {
           label="Email"
           icon={FaEnvelope}
           value={form.values.email}
-          onChange={(e) => form.setField("email", e.target.value)}
+          onChange={(val) => form.setField("email", val)} // ✅ nhận giá trị trực tiếp
           placeholder="example@courier.com"
           error={form.errors.email}
         />
@@ -42,7 +42,7 @@ const RegisterPage = () => {
           type={showPassword ? "text" : "password"}
           icon={FaLock}
           value={form.values.password}
-          onChange={(e) => form.setField("password", e.target.value)}
+          onChange={(val) => form.setField("password", val)} // ✅ nhận giá trị trực tiếp
           placeholder="Tối thiểu 6 ký tự"
           error={form.errors.password}
           rightElement={
@@ -62,7 +62,7 @@ const RegisterPage = () => {
           type={showConfirmPassword ? "text" : "password"}
           icon={FaLock}
           value={form.values.confirmPassword}
-          onChange={(e) => form.setField("confirmPassword", e.target.value)}
+          onChange={(val) => form.setField("confirmPassword", val)} // ✅ nhận giá trị trực tiếp
           placeholder="Nhập lại mật khẩu"
           error={form.errors.confirmPassword}
           rightElement={

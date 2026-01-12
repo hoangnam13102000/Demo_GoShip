@@ -81,7 +81,7 @@ const LoginPage = () => {
             label="Email"
             icon={FaEnvelope}
             value={form.values.email}
-            onChange={(e) => form.setField("email", e.target.value)}
+            onChange={(val) => form.setField("email", val)} // ✅ nhận giá trị trực tiếp
             placeholder="example@courier.com"
             error={form.errors.email}
             remember
@@ -94,7 +94,7 @@ const LoginPage = () => {
             type={showPassword ? "text" : "password"}
             icon={FaLock}
             value={form.values.password}
-            onChange={(value) => form.setField("password", value)} // ✅ FIX
+            onChange={(val) => form.setField("password", val)} // ✅ nhận giá trị trực tiếp
             placeholder="Nhập mật khẩu"
             error={form.errors.password}
             rightElement={
