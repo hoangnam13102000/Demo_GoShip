@@ -9,27 +9,28 @@ export const ROUTERS = {
     CONTACT: "/lien-he",
     SERVICES: "/dich-vu",
     BLOG: "/blog",
-    CREATESHIPMENTPAGE:"/tao-don-hang",
-    TRACKINGPAGE:"/tra-cuu-don-hang",
-    MYORDERS:"/don-hang-cua-toi",
+    CREATESHIPMENTPAGE: "/tao-don-hang",
+    TRACKINGPAGE: "/tra-cuu-don-hang",
+    MYORDERS: "/don-hang-cua-toi",
 
     NOTFOUND: "/404",
   },
 
-  
   ADMIN: {
     DASHBOARD: "/admin",
-    ACCOUNTS:"admin/quan-ly-tai-khoan",
-    AGENTS:"admin/quan-ly-agent",
+    ACCOUNTS: "admin/quan-ly-tai-khoan",
+    AGENTS: "admin/quan-ly-agent",
     CUSTOMERS: "/admin/quan-ly-khach-hang",
     SERVICES: "/admin/quan-ly-dich-vu",
     SHIPMENTS: "/admin/quan-ly-don-hang",
     BRANCHES: "/admin/quan-ly-chi-nhanh",
-    BILL:"/admin/quan-ly-hoa-don",
+    BILL: "/admin/quan-ly-hoa-don",
   },
-  AGENTS:{
+  AGENTS: {
     DASHBOARD: "/agent",
-  }
+    SHIPMENTS: "/agent/quan-ly-don-hang",
+    BILL: "/agent/quan-ly-hoa-don"
+  },
 };
 
 export const ADMIN_PATH = "/admin";

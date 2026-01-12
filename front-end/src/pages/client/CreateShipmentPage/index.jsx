@@ -207,7 +207,7 @@ const CreateShipmentPage = () => {
       branch_id: null,
       expected_delivery_date: null,
 
-      updated_by: profile?.id, 
+      updated_by: profile?.id,
     };
 
     console.group(" CREATE SHIPMENT PAYLOAD");
