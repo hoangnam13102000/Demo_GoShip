@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaBox, FaPhone, FaEnvelope, FaMapMarkerAlt, FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaArrowUp } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   const [showScrollTop, setShowScrollTop] = React.useState(false);
@@ -18,6 +19,28 @@ export default function Footer() {
 
   const currentYear = new Date().getFullYear();
 
+  const quickLinks = [
+    { label: "Trang chủ", to: "/" },
+    { label: "Về chúng tôi", to: "/gioi-thieu" },
+    { label: "Dịch vụ", to: "/dich-vu" },
+    { label: "Blog", to: "/blog" },
+    { label: "Liên hệ", to: "/lien-he" },
+  ];
+
+  const serviceLinks = [
+    { label: "Quản lý đơn hàng", to: "/quan-ly-don-hang" },
+    { label: "Theo dõi giao hàng", to: "/theo-doi" },
+    { label: "Quản lý kho", to: "/quan-ly-kho" },
+    { label: "Báo cáo và phân tích", to: "/bao-cao" },
+    { label: "Hỗ trợ khách hàng", to: "/ho-tro" },
+  ];
+
+  const legalLinks = [
+    { label: "Chính sách bảo mật", to: "/chinh-sach-bao-mat" },
+    { label: "Điều khoản sử dụng", to: "/dieu-khoan" },
+    { label: "Cài đặt cookies", to: "/cai-dat-cookies" },
+  ];
+
   return (
     <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300">
       <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -35,7 +58,7 @@ export default function Footer() {
                 <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">CourierHub</h3>
               </div>
               <p className="text-xs sm:text-sm text-gray-400 leading-relaxed mb-6">
-                Hệ thống quản lý dịch vụ chuyển phát hiện đại, giúp tối ưu hóa quy trình giao hàng và nâng cao chất lượng dịch vụ.
+                Hệ thống quản lý dịch vụ chuyên phát hiện đại, giúp tối ưu hóa quy trình giao hàng và nâng cao chất lượng dịch vụ.
               </p>
               <div className="flex gap-3 sm:gap-4">
                 <a href="#" className="bg-gray-800 hover:bg-blue-600 text-white p-2 sm:p-2.5 rounded-full transition-all duration-300 hover:scale-110">
@@ -57,31 +80,13 @@ export default function Footer() {
             <div className="col-span-1">
               <h4 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6">Liên kết nhanh</h4>
               <ul className="space-y-2 sm:space-y-3">
-                <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Trang chủ
-                  </a>
-                </li>
-                <li>
-                  <a href="/about" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Về chúng tôi
-                  </a>
-                </li>
-                <li>
-                  <a href="/services" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Dịch vụ
-                  </a>
-                </li>
-                <li>
-                  <a href="/blog" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="/contact" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Liên hệ
-                  </a>
-                </li>
+                {quickLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link to={link.to} className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -89,31 +94,13 @@ export default function Footer() {
             <div className="col-span-1">
               <h4 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6">Dịch vụ</h4>
               <ul className="space-y-2 sm:space-y-3">
-                <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Quản lý đơn hàng
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Theo dõi giao hàng
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Quản lý kho
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Báo cáo và phân tích
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    Hỗ trợ khách hàng
-                  </a>
-                </li>
+                {serviceLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link to={link.to} className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -158,17 +145,16 @@ export default function Footer() {
 
             {/* Legal Links */}
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 lg:gap-6 text-xs sm:text-sm order-1 sm:order-2">
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
-                Chính sách bảo mật
-              </a>
-              <span className="text-gray-700 hidden sm:inline">|</span>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
-                Điều khoản sử dụng
-              </a>
-              <span className="text-gray-700 hidden sm:inline">|</span>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
-                Cài đặt cookies
-              </a>
+              {legalLinks.map((link, index) => (
+                <React.Fragment key={link.label}>
+                  <Link to={link.to} className="text-gray-400 hover:text-blue-400 transition-colors">
+                    {link.label}
+                  </Link>
+                  {index < legalLinks.length - 1 && (
+                    <span className="text-gray-700 hidden sm:inline">|</span>
+                  )}
+                </React.Fragment>
+              ))}
             </div>
 
             {/* Scroll to Top Button */}

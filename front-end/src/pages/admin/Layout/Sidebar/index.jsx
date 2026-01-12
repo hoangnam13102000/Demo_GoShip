@@ -50,7 +50,35 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
       </div>
 
       {/* Menu */}
-      <nav className="mt-6 px-3 space-y-2">
+      <nav 
+        className={`mt-6 px-3 space-y-2 overflow-y-auto ${
+          collapsed ? "h-[calc(100vh-80px)]" : "h-[calc(100vh-80px)]"
+        }`}
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "#3b82f6 #1e3a8a",
+        }}
+      >
+        <style>{`
+          nav::-webkit-scrollbar {
+            width: 6px;
+          }
+          
+          nav::-webkit-scrollbar-track {
+            background: #1e3a8a;
+            border-radius: 3px;
+          }
+          
+          nav::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 3px;
+          }
+          
+          nav::-webkit-scrollbar-thumb:hover {
+            background: #60a5fa;
+          }
+        `}</style>
+
         {menuItems.map((item, index) => (
           <NavLink
             key={index}
