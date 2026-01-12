@@ -11,7 +11,7 @@ class Tracking extends Model
 
     protected $table = 'tracking';
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'shipment_id',
@@ -21,6 +21,7 @@ class Tracking extends Model
         'direction_flag',
         'note',
         'updated_at',
+        
     ];
 
     protected $casts = [

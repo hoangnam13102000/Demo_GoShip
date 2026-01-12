@@ -250,7 +250,7 @@ export default function ClientHeader() {
 
                       <div className="py-2">
                         <Link
-                          to="/orders"
+                          to="/don-hang-cua-toi"
                           className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50"
                         >
                           <FaBox className="text-blue-600" /> Đơn hàng của tôi

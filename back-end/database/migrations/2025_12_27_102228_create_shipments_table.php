@@ -14,10 +14,7 @@ return new class extends Migration
 
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
-           $table->foreign('branch_id')
-                ->references('id')
-                ->on('branches')
-                ->nullOnDelete();
+            $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
             $table->foreignId('current_status_id')->constrained('shipment_statuses');
 
             // Sender

@@ -11,7 +11,7 @@ const SenderInfo = ({ form, errors, updateForm }) => {
         <InputField 
           label="Tên người gửi *" 
           icon={FaUser}
-          value={form.sender.name} 
+          value={form.sender.full_name} 
           onChange={(v) => updateForm('sender', 'name', v)} 
           error={errors.senderName} 
         />

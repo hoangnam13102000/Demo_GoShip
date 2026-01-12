@@ -31,6 +31,7 @@ return new class extends Migration {
             $table->text('note')->nullable();
 
             $table->timestamp('updated_at');
+            $table->timestamp('created_at')->nullable();
         });
     }
 

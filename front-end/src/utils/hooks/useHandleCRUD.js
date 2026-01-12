@@ -25,7 +25,11 @@ const useHandleCRUD = ({
    * SUBMIT CREATE / UPDATE
    */
   const handleSubmit = async (e, editing, formData) => {
-    e.preventDefault();
+    
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
+
     setSuccessMessage("");
 
     try {
@@ -49,8 +53,7 @@ const useHandleCRUD = ({
 
       // ================= UPDATE =================
       const payload = { ...formData };
-      delete payload.email; // backend không cho sửa email
-
+      delete payload.email; 
       await updateMutation.mutateAsync({
         id: editing.id,
         data: payload,

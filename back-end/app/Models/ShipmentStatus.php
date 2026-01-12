@@ -16,8 +16,5 @@ class ShipmentStatus extends Model
         return $this->hasMany(Shipment::class, 'current_status_id');
     }
 
-    public function histories()
-    {
-        return $this->hasMany(ShipmentStatusHistory::class, 'status_id');
-    }
+   
 }

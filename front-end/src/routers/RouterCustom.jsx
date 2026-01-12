@@ -16,6 +16,7 @@ import ServicesPage from "../pages/client/Services";
 import BlogPage from "../pages/client/Blog";
 import CreateShipmentPage from "../pages/client/CreateShipmentPage";
 import TrackingPage from "../pages/client/TrackingPage";
+import MyOrdersPage from "../pages/client/MyOrders";
 import NotFound from "../pages/404";
 
 // ===== ADMIN =====
@@ -44,6 +45,7 @@ const userRouter = [
   { path: ROUTERS.USER.CREATESHIPMENTPAGE, element: <CreateShipmentPage /> },
   { path: ROUTERS.USER.TRACKINGPAGE, element: <TrackingPage /> },
   { path: ROUTERS.USER.BLOG, element: <BlogPage /> },
+  { path: ROUTERS.USER.MYORDERS, element: <MyOrdersPage /> }
 ];
 
 // ================= ADMIN ROUTER =================

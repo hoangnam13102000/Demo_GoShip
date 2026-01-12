@@ -11,9 +11,9 @@ const ReceiverInfo = ({ form, errors, updateForm }) => {
         <InputField 
           label="Tên người nhận *" 
           icon={FaUser}
-          value={form.receiver.name} 
-          onChange={(v) => updateForm('receiver', 'name', v)} 
-          error={errors.receiverName} 
+          value={form.receiver.full_name} 
+          onChange={(v) => updateForm('receiver', 'full_name', v)} 
+          error={errors.receiverFull_name} 
         />
         <InputField 
           label="Số điện thoại *" 

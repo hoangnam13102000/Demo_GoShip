@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BillController;
 use App\Http\Controllers\NotificationTemplateController;
+use App\Http\Controllers\Api\ProfileController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -33,7 +34,10 @@ Route::middleware('auth:sanctum')->group(function() {
 
     Route::middleware('role:USER')->get('/dashboard', function() {
         return ['message' => 'User dashboard'];
+
     });
+
+    
 });
 
 
@@ -41,6 +45,8 @@ Route::apiResource('accounts', AccountController::class);
 Route::apiResource('customers', CustomerController::class);
 Route::apiResource('agents', AgentController::class);
 Route::apiResource('shipments', ShipmentController::class);
+Route::get('shipments/track/{tracking_number}', [ShipmentController::class, 'track']);
+Route::get('shipments/my-orders', [ShipmentController::class, 'myOrders']);
 Route::apiResource('notifications', NotificationController::class);
 Route::apiResource('reports', ReportController::class);
 Route::apiResource('branches', BranchController::class);
@@ -50,3 +56,4 @@ Route::apiResource('notification-templates', NotificationTemplateController::cla
 Route::get('/ping', function () {
     return response()->json(['message' => 'API is working']);
 });
+ Route::get('/profile/{accountId}', [ProfileController::class, 'getProfile']);

@@ -100,4 +100,5 @@ class CustomerController extends Controller
             'message' => 'Customer deleted successfully'
         ]);
     }
+    
 }

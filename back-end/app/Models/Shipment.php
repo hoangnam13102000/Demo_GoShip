@@ -10,21 +10,26 @@ class Shipment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tracking_number',   // đổi từ tracking_code
+        'tracking_number',
         'customer_id',
         'agent_id',
-        'branch_id',         // thêm branch_id
-        'current_status_id', // thêm current_status_id
+
         'sender_name',
         'sender_address',
+        'sender_city',
         'sender_phone',
+
         'receiver_name',
         'receiver_address',
+        'receiver_city',
         'receiver_phone',
-        'shipment_type',
+
+        'shipment_service_code',
         'weight',
-        'charge',            // đổi từ fee
-        'expected_delivery_date', // đổi từ delivery_date
+        'charge',
+
+        'current_status_id',
+        'expected_delivery_date',
     ];
 
     // Quan hệ với Customer
@@ -62,4 +67,9 @@ class Shipment extends Model
     {
         return $this->hasMany(Bill::class);
     }
+
+    public function trackingHistory()
+{
+    return $this->hasMany(Tracking::class); 
+}
 }

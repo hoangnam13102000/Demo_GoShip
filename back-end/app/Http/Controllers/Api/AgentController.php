@@ -25,14 +25,18 @@ class AgentController extends Controller
         $validated = $request->validate([
             'account_id' => 'required|exists:accounts,id',
             'branch_id' => 'required|exists:branches,id',
-            'contact_number' => 'nullable|string|max:20',
+            'full_name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
             'status' => 'nullable|in:ACTIVE,INACTIVE',
         ]);
 
         $agent = Agent::create([
             'account_id' => $validated['account_id'],
             'branch_id' => $validated['branch_id'],
-            'contact_number' => $validated['contact_number'] ?? null,
+            'full_name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
             'status' => $validated['status'] ?? 'ACTIVE',
         ]);
 
@@ -58,7 +62,9 @@ class AgentController extends Controller
         $validated = $request->validate([
             'account_id' => 'sometimes|required|exists:accounts,id',
             'branch_id' => 'sometimes|required|exists:branches,id',
-            'contact_number' => 'sometimes|nullable|string|max:20',
+            'full_name' => 'sometimes|required|string|max:255',
+            'phone' => 'sometimes|nullable|string|max:20',
+            'address' => 'sometimes|nullable|string|max:255',
             'status' => 'sometimes|in:ACTIVE,INACTIVE',
         ]);
 

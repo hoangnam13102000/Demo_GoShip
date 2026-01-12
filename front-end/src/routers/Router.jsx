@@ -11,6 +11,7 @@ export const ROUTERS = {
     BLOG: "/blog",
     CREATESHIPMENTPAGE:"/tao-don-hang",
     TRACKINGPAGE:"/tra-cuu-don-hang",
+    MYORDERS:"/don-hang-cua-toi",
 
     NOTFOUND: "/404",
   },
