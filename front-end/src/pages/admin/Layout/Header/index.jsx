@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const DashboardHeader = ({ title = "Dashboard", user: userProp, onLogout }) => {
+const DashboardHeader = ({ title = "GoShip ADMIN", user: userProp, onLogout }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);

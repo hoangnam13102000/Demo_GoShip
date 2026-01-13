@@ -35,6 +35,7 @@ import DashboardReport from "../pages/admin/ReportAdminPage"
 import AgentDashboard from "../pages/agent/Layout";
 import AgentShipmentServicesPage from "../pages/agent/AgentShipmentServicesPage/index.jsx";
 import AgentBillsPage from "../pages/agent/AgentBillsPage/index.jsx";
+import BranchAgentsPage from "../pages/agent/BranchAgentsPage/index.jsx";
 
 // ================= USER ROUTER =================
 const userRouter = [
@@ -67,9 +68,10 @@ const adminRouter = [
 // ================= AGENT ROUTER =================
 const agentRouter = [
   { path: ROUTERS.AGENTS.DASHBOARD, element: <Dashboard /> },
-  { path: ROUTERS.AGENTS.SHIPMENTS, element: <AgentShipmentServicesPage/>},
-  { path: ROUTERS.AGENTS.BILL, element: <AgentBillsPage/>}
-
+  { path: ROUTERS.AGENTS.CUSTOMERS, element: <AdminCustomersPage /> },
+  { path: ROUTERS.AGENTS.SHIPMENTS, element: <AdminShipmentsPage/>},
+  { path: ROUTERS.AGENTS.BILL, element: <AgentBillsPage/>},
+  { path: ROUTERS.AGENTS.AGENTS, element: <BranchAgentsPage/>}
 ];
 
 // ================= RENDER USER =================

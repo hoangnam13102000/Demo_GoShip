@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->foreignId('account_id')->constrained('accounts')->onDelete('cascade');
             $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
-            $table->string('contact_number')->nullable();
             $table->enum('status', ['ACTIVE', 'INACTIVE'])->default('ACTIVE');
             $table->timestamps();
         });

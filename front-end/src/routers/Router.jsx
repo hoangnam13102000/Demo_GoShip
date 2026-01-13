@@ -29,6 +29,8 @@ export const ROUTERS = {
   },
   AGENTS: {
     DASHBOARD: "/agent",
+    AGENTS: "/agent/quan-ly-nhan-vien",
+    CUSTOMERS: "/agent/quan-ly-khach-hang",
     SHIPMENTS: "/agent/quan-ly-don-hang",
     BILL: "/agent/quan-ly-hoa-don"
   },
