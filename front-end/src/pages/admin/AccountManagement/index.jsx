@@ -11,7 +11,8 @@ import Pagination from "../../../components/common/Pagination";
 
 /* ================= CONSTANTS ================= */
 
-const ROLE_OPTIONS = ["ADMIN", "AGENT", "USER"];
+// ❌ KHÔNG CÓ USER
+const ROLE_OPTIONS = ["ADMIN", "AGENT"];
 const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
 
 /* ================= INITIAL FORM ================= */
@@ -19,7 +20,8 @@ const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
 const initialForm = {
   email: "",
   password: "",
-  role: "USER",
+  role: "AGENT",
+  branch_id: "",
   is_active: true,
 };
 
@@ -32,14 +34,17 @@ const toStatus = (v) => (toBool(v) ? "ACTIVE" : "INACTIVE");
 
 const AdminAccountsPage = () => {
   // ================= API =================
-  const { useGetAll, useCreate, useUpdate, useDelete } =
-    useCRUDApi("accounts");
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCRUDApi("accounts");
+
+  const { useGetAll: useGetBranches } = useCRUDApi("branches");
 
   const {
     data: accounts = [],
     isLoading,
     isError,
   } = useGetAll({ staleTime: 1000 * 30 });
+
+  const { data: branches = [] } = useGetBranches();
 
   const createMutation = useCreate();
   const updateMutation = useUpdate();
@@ -98,18 +103,31 @@ const AdminAccountsPage = () => {
     setForm({
       email: account.email || "",
       password: "",
-      role: account.role || "USER",
-      is_active: toBool(account.status || "ACTIVE"),
+      role: account.role || "AGENT",
+      branch_id: account.branch_id || "",
+      is_active: toBool(account.status),
     });
     setShowModal(true);
   };
 
-  // ================= SUBMIT (QUAN TRỌNG) =================
+  // ================= SUBMIT =================
   const handleSubmitAccount = (e) => {
+    // 🔒 CHẶN USER (an toàn kép)
+    if (form.role === "USER") {
+      setDialog({
+        open: true,
+        mode: "error",
+        title: "Không hợp lệ",
+        message: "Không thể tạo tài khoản khách hàng tại đây.",
+      });
+      return;
+    }
+
     const payload = {
       email: form.email,
-      password: form.password,
+      password: form.password || undefined,
       role: form.role,
+      branch_id: form.branch_id,
       status: toStatus(form.is_active),
     };
 
@@ -127,9 +145,7 @@ const AdminAccountsPage = () => {
           acc.role?.toLowerCase().includes(keyword)
         );
       })
-      .filter((acc) =>
-        filterRole === "ALL" ? true : acc.role === filterRole
-      )
+      .filter((acc) => (filterRole === "ALL" ? true : acc.role === filterRole))
       .filter((acc) => {
         if (filterStatus === "ALL") return true;
         return filterStatus === "ACTIVE"
@@ -145,7 +161,6 @@ const AdminAccountsPage = () => {
     return filteredAccounts.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredAccounts, currentPage]);
 
-  // Reset về trang 1 khi search/filter thay đổi
   const handleSearch = (value) => {
     setSearch(value);
     setCurrentPage(1);
@@ -165,7 +180,6 @@ const AdminAccountsPage = () => {
   const ROLE_BADGE_CONFIG = {
     ADMIN: { className: "bg-purple-100 text-purple-700" },
     AGENT: { className: "bg-blue-100 text-blue-700" },
-    USER: { className: "bg-gray-100 text-gray-700" },
     DEFAULT: { className: "bg-gray-100 text-gray-700" },
   };
 
@@ -188,9 +202,6 @@ const AdminAccountsPage = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Quản lý tài khoản
         </h1>
-        <p className="text-gray-600 mb-6">
-          Quản lý các tài khoản hệ thống
-        </p>
 
         <FilterBar
           search={search}
@@ -212,8 +223,12 @@ const AdminAccountsPage = () => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           columns={[
-            { key: "index", title: "STT", render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1 },
-            { key: "email", title: "Email", render: (row) => row.email },
+            {
+              key: "index",
+              title: "STT",
+              render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
+            },
+            { key: "email", title: "Email" },
             {
               key: "role",
               title: "Vai trò",
@@ -230,14 +245,6 @@ const AdminAccountsPage = () => {
                   config={STATUS_BADGE_CONFIG}
                 />
               ),
-            },
-            {
-              key: "created_at",
-              title: "Ngày tạo",
-              render: (row) =>
-                row.created_at
-                  ? new Date(row.created_at).toLocaleDateString("vi-VN")
-                  : "-",
             },
           ]}
         />
@@ -257,16 +264,12 @@ const AdminAccountsPage = () => {
         title={editing ? "Chỉnh sửa tài khoản" : "Tạo tài khoản mới"}
         form={form}
         fields={[
-          {
-            name: "email",
-            type: "email",
-            readOnly: editing ? true : false,
-          },
+          { name: "email", type: "email", readOnly: !!editing },
           {
             name: "password",
             type: "password",
-            required: editing ? false : true,
-            placeholder: editing ? "Để trống nếu không thay đổi" : "",
+            required: !editing,
+            placeholder: editing ? "Để trống nếu không đổi" : "",
           },
           {
             name: "role",
@@ -277,6 +280,16 @@ const AdminAccountsPage = () => {
             })),
           },
           {
+            name: "branch_id",
+            type: "select",
+            label: "Chi nhánh",
+            required: true,
+            options: branches.map((b) => ({
+              label: b.name,
+              value: b.id,
+            })),
+          },
+          {
             name: "is_active",
             type: "checkbox",
             label: "Kích hoạt",
@@ -284,9 +297,7 @@ const AdminAccountsPage = () => {
         ]}
         editing={editing}
         successMessage={successMessage}
-        isSubmitting={
-          createMutation.isPending || updateMutation.isPending
-        }
+        isSubmitting={createMutation.isPending || updateMutation.isPending}
         onChange={handleChange}
         onSubmit={handleSubmitAccount}
         onCancel={resetForm}
@@ -300,9 +311,7 @@ const AdminAccountsPage = () => {
         message={dialog.message}
         onClose={() => setDialog({ ...dialog, open: false })}
         onConfirm={async () => {
-          if (dialog.onConfirm) {
-            await dialog.onConfirm();
-          }
+          if (dialog.onConfirm) await dialog.onConfirm();
         }}
       />
     </div>

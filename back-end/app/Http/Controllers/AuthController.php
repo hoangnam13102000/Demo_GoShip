@@ -73,7 +73,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|unique:accounts,email',
+            'email'    => 'required|email|unique:accounts,email',
             'password' => 'required|min:6|confirmed',
         ]);
 
@@ -82,18 +82,18 @@ class AuthController extends Controller
         try {
             // 1. Tạo account
             $account = Account::create([
-                'email' => $request->email,
+                'email'    => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => 'USER',
-                'status' => 'ACTIVE',
+                'role'     => 'USER',
+                'status'   => 'ACTIVE',
             ]);
 
-            // 2. Tạo customer tương ứng (giá trị null)
+            // 2. Tạo customer tương ứng (KHÔNG NULL)
             Customer::create([
                 'account_id' => $account->id,
-                'full_name' => null,
-                'phone' => null,
-                'address' => null,
+                'full_name'  => '',
+                'phone'      => '',
+                'address'    => '',
             ]);
 
             DB::commit();
@@ -101,18 +101,18 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Đăng ký thành công',
                 'user' => [
-                    'id' => $account->id,
+                    'id'    => $account->id,
                     'email' => $account->email,
-                    'role' => $account->role,
+                    'role'  => $account->role,
                 ]
             ], 201);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
 
             return response()->json([
                 'message' => 'Đăng ký thất bại',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
