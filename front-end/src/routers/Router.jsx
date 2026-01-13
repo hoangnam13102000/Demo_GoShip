@@ -12,7 +12,7 @@ export const ROUTERS = {
     CREATESHIPMENTPAGE: "/tao-don-hang",
     TRACKINGPAGE: "/tra-cuu-don-hang",
     MYORDERS: "/don-hang-cua-toi",
-
+    PROFILE: "/profile",
     NOTFOUND: "/404",
   },
 
@@ -33,7 +33,8 @@ export const ROUTERS = {
     CUSTOMERS: "/agent/quan-ly-khach-hang",
     SHIPMENTS: "/agent/quan-ly-don-hang",
     BILL: "/agent/quan-ly-hoa-don",
-    REPORT: "/agent/bao-cao"
+    REPORT: "/agent/bao-cao",
+    PROFILE: "/agent/profile"
   },
 };
 

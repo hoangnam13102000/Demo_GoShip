@@ -7,9 +7,13 @@ import {
   FaUser,
   FaQuestionCircle,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-const DashboardHeader = ({ title = "GoShip AGENT", user: userProp, onLogout }) => {
+const DashboardHeader = ({
+  title = "GoShip AGENT",
+  user: userProp,
+  onLogout,
+}) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
@@ -64,10 +68,7 @@ const DashboardHeader = ({ title = "GoShip AGENT", user: userProp, onLogout }) =
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("auth-change", handleAuthChange);
       window.removeEventListener("focus", handleWindowFocus);
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange
-      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
@@ -169,14 +170,23 @@ const DashboardHeader = ({ title = "GoShip AGENT", user: userProp, onLogout }) =
                     </div>
 
                     <div className="py-2">
-                      <button className="w-full px-5 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3">
-                        <FaUser className="text-gray-400" />
-                        Hồ sơ
-                      </button>
+                      {/* ===== HỒ SƠ ===== */}
+                      <Link
+                        to="/agent/profile"
+                        className="block"
+                        onClick={() => setShowMenu(false)}
+                      >
+                        <button className="w-full px-5 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3">
+                          <FaUser className="text-gray-400" />
+                          Hồ sơ
+                        </button>
+                      </Link>
+
                       <button className="w-full px-5 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3">
                         <FaCog className="text-gray-400" />
                         Cài đặt
                       </button>
+
                       <button className="w-full px-5 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3">
                         <FaQuestionCircle className="text-gray-400" />
                         Trợ giúp

@@ -18,6 +18,7 @@ import CreateShipmentPage from "../pages/client/CreateShipmentPage";
 import TrackingPage from "../pages/client/TrackingPage";
 import MyOrdersPage from "../pages/client/MyOrders";
 import NotFound from "../pages/404";
+import ProfilePage from "../pages/client/Profile/index.jsx";
 
 // ===== ADMIN =====
 import Dashboard from "../pages/admin/Dashboard";
@@ -51,7 +52,9 @@ const userRouter = [
   { path: ROUTERS.USER.CREATESHIPMENTPAGE, element: <CreateShipmentPage /> },
   { path: ROUTERS.USER.TRACKINGPAGE, element: <TrackingPage /> },
   { path: ROUTERS.USER.BLOG, element: <BlogPage /> },
-  { path: ROUTERS.USER.MYORDERS, element: <MyOrdersPage /> }
+  { path: ROUTERS.USER.MYORDERS, element: <MyOrdersPage /> },
+  { path: ROUTERS.USER.PROFILE, element: <ProfilePage/>}
+
 ];
 
 // ================= ADMIN ROUTER =================
@@ -74,7 +77,8 @@ const agentRouter = [
   { path: ROUTERS.AGENTS.SHIPMENTS, element: <AdminShipmentsPage/>},
   { path: ROUTERS.AGENTS.BILL, element: <AgentBillsPage/>},
   { path: ROUTERS.AGENTS.AGENTS, element: <BranchAgentsPage/>},
-  { path: ROUTERS.AGENTS.REPORT, element: <ReportAgentPage/>}
+  { path: ROUTERS.AGENTS.REPORT, element: <ReportAgentPage/>},
+  { path: ROUTERS.AGENTS.PROFILE, element: <ProfilePage/>}
 ];
 
 // ================= RENDER USER =================
