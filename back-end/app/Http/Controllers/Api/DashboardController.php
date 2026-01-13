@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Exports\DashboardReportExport;
+use App\Exports\ShipmentReceiptExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
@@ -116,8 +117,15 @@ class DashboardController extends Controller
 
         return response()->json($top);
     }
-     public function exportExcel()
+    public function exportExcel()
     {
         return Excel::download(new DashboardReportExport, 'dashboard.xlsx');
+    }
+    public function exportReceiptsExcel(\Illuminate\Http\Request $request)
+    {
+        $start = $request->query('start_date');
+        $end = $request->query('end_date');
+
+        return Excel::download(new ShipmentReceiptExport($start, $end), 'shipment_receipts.xlsx');
     }
 }

@@ -49,6 +49,7 @@ Route::get('/dashboard/top-customers', [DashboardController::class, 'topCustomer
 Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
 Route::get('/dashboard/top-services', [DashboardController::class, 'topServices']);
 Route::get('/dashboard/export', [DashboardController::class, 'exportExcel']);
+Route::get('/dashboard/export-receipts', [DashboardController::class, 'exportReceiptsExcel']);
 
 Route::apiResource('accounts', AccountController::class);
 Route::apiResource('customers', CustomerController::class);
