@@ -108,7 +108,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     { title: "Quản lý khách hàng", icon: <FaUsers />, path: "/agent/quan-ly-khach-hang" },
     { title: "Quản lý nhân viên", icon: <FaBox />, path: "/agent/quan-ly-nhan-vien" },
     
-    { title: "Báo cáo", icon: <FaChartBar />, path: "/agent/reports" },
+    { title: "Báo cáo", icon: <FaChartBar />, path: "/agent/bao-cao" },
     { title: "Cài đặt", icon: <FaCog />, path: "/agent/settings" },
   ];
 

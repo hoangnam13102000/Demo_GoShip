@@ -32,7 +32,8 @@ export const ROUTERS = {
     AGENTS: "/agent/quan-ly-nhan-vien",
     CUSTOMERS: "/agent/quan-ly-khach-hang",
     SHIPMENTS: "/agent/quan-ly-don-hang",
-    BILL: "/agent/quan-ly-hoa-don"
+    BILL: "/agent/quan-ly-hoa-don",
+    REPORT: "/agent/bao-cao"
   },
 };
 
