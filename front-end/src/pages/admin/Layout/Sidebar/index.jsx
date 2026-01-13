@@ -18,7 +18,6 @@ const menuItems = [
   { title: "Quản lý khách hàng", icon: <FaUsers />, path: "/admin/quan-ly-khach-hang" },
   { title: "Quản lý dịch vụ", icon: <FaUsers />, path: "/admin/quan-ly-dich-vu" },
   { title: "Quản lý vận chuyển", icon: <FaTruck />, path: "/admin/quan-ly-don-hang" },
-  { title: "Doanh thu", icon: <FaMoneyBillWave />, path: "/admin/revenue" },
   { title: "Quản lý hóa đơn", icon: <FaMoneyBillWave />, path: "/admin/quan-ly-hoa-don" },
   { title: "Báo cáo", icon: <FaChartBar />, path: "/admin/bao-cao" },
   { title: "Cài đặt", icon: <FaCog />, path: "/admin/settings" },
