@@ -9,27 +9,37 @@ class AgentSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('agents')->insert([
-            [
-                'account_id' => 2, // agent1@courier.com
-                'branch_id'  => 1, 
-                'full_name'  => 'Nguyễn Văn B',
-                'address'    => '456 Đường Trần Hưng Đạo, Quận 1, TP.HCM',
-                'phone' => '0901000100',
-                'status' => 'ACTIVE',
+        $agents = DB::table('accounts')->where('role', 'AGENT')->get();
+
+        // Danh sách tên người Việt
+        $fullNames = [
+            'Nguyễn Văn Bình',
+            'Trần Thị Cẩm',
+            'Lê Hoàng Nam',
+            'Phạm Quốc Huy',
+            'Võ Thị Thu Hà',
+            'Đặng Minh Tuấn',
+            'Bùi Ngọc Anh',
+            'Hoàng Thanh Sơn',
+            'Đỗ Thị Mỹ Linh',
+            'Nguyễn Đức Long',
+        ];
+
+        $i = 0;
+
+        foreach ($agents as $agent) {
+            DB::table('agents')->insert([
+                'account_id' => $agent->id,
+                'branch_id'  => ($i % 3) + 1, // chia agent cho 3 chi nhánh
+                'full_name'  => $fullNames[$i % count($fullNames)],
+                'address'    => 'Chi nhánh ' . (($i % 3) + 1) . ', TP. Hồ Chí Minh',
+                'phone'      => '0901' . str_pad($agent->id, 6, '0', STR_PAD_LEFT),
+                'status'     => 'ACTIVE',
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
-            [
-                'account_id' => 3, // agent2@courier.com
-                'branch_id'  => 2, 
-                'full_name'  => 'Trần Thị C',
-                'address'    => '789 Đường Nguyễn Huệ, Quận 3, TP.HCM',
-                'phone' => '0901000102',
-                'status' => 'ACTIVE',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+            ]);
+
+            $i++;
+        }
     }
 }

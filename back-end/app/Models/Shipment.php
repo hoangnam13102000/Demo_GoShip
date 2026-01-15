@@ -9,67 +9,45 @@ class Shipment extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'tracking_number',
-        'customer_id',
-        'agent_id',
+    protected $guarded = [];
 
-        'sender_name',
-        'sender_address',
-        'sender_city',
-        'sender_phone',
-
-        'receiver_name',
-        'receiver_address',
-        'receiver_city',
-        'receiver_phone',
-
-        'shipment_service_code',
-        'weight',
-        'charge',
-
-        'current_status_id',
-        'expected_delivery_date',
-    ];
-
-    // Quan hệ với Customer
     public function customer()
     {
         return $this->belongsTo(Customer::class);
     }
 
-    // Quan hệ với Agent
     public function agent()
     {
-        return $this->belongsTo(Agent::class);
+        return $this->belongsTo(Account::class, 'agent_id');
     }
 
-    // Quan hệ với Branch
     public function branch()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Branch::class, 'current_branch_id');
     }
 
-    // Quan hệ với trạng thái hiện tại
     public function currentStatus()
     {
         return $this->belongsTo(ShipmentStatus::class, 'current_status_id');
     }
 
-    // Lịch sử trạng thái
-    public function shipmentServices()
+    public function shipmentService()
     {
-        return $this->belongsTo(ShipmentService::class);
+        return $this->belongsTo(
+            ShipmentService::class,
+            'shipment_service_code',
+            'code'
+        );
     }
 
-    // Hóa đơn liên quan
-    public function bills()
+    public function bill()
     {
-        return $this->hasMany(Bill::class);
+        return $this->hasOne(Bill::class);
     }
+
 
     public function trackingHistory()
-{
-    return $this->hasMany(Tracking::class); 
-}
+    {
+        return $this->hasMany(Tracking::class);
+    }
 }

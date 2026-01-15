@@ -12,7 +12,7 @@ const SenderInfo = ({ form, errors, updateForm }) => {
           label="Tên người gửi *" 
           icon={FaUser}
           value={form.sender.full_name} 
-          onChange={(v) => updateForm('sender', 'name', v)} 
+          onChange={(v) => updateForm('sender', 'full_name', v)} 
           error={errors.senderName} 
         />
         <InputField 

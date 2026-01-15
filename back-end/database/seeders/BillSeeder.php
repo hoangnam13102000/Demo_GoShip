@@ -9,29 +9,35 @@ class BillSeeder extends Seeder
 {
     public function run(): void
     {
-        // Xóa dữ liệu cũ
-        DB::table('bills')->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-        // Lấy tất cả shipment_id có sẵn
-        $shipmentIds = DB::table('shipments')->pluck('id')->toArray();
+        DB::table('payments')->truncate();
+        DB::table('bills')->truncate();
 
-        // Nếu không có shipment nào, dừng
-        if (empty($shipmentIds)) {
-            $this->command->info('No shipments found. Skipping BillSeeder.');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        $shipmentIds = DB::table('shipments')->pluck('id');
+
+        if ($shipmentIds->isEmpty()) {
             return;
         }
 
         $bills = [];
+
         foreach ($shipmentIds as $shipmentId) {
+            $baseAmount = rand(10000, 25000);
+            $weightFee  = rand(2000, 8000);
+            $tax        = (int)(($baseAmount + $weightFee) * 0.1);
+
             $bills[] = [
-                'shipment_id' => $shipmentId,
-                'base_amount' => rand(10000, 25000),
-                'weight_fee'  => rand(2000, 8000),
-                'tax'         => rand(1000, 3000),
-                'total_amount'=> rand(15000, 32000),
-                'status'      => rand(0,1) ? 'PAID' : 'UNPAID',
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'shipment_id'  => $shipmentId,
+                'base_amount'  => $baseAmount,
+                'weight_fee'   => $weightFee,
+                'tax'          => $tax,
+                'total_amount' => $baseAmount + $weightFee + $tax,
+                'status'       => rand(0, 1) ? 'PAID' : 'UNPAID',
+                'created_at'   => now(),
+                'updated_at'   => now(),
             ];
         }
 

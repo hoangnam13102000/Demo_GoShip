@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\BranchResolver;
 use App\Models\Shipment;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -11,18 +13,38 @@ use Illuminate\Support\Facades\Auth;
 
 class ShipmentController extends Controller
 {
-    public function index()
+    protected BranchResolver $branchResolver;
+
+    public function __construct(BranchResolver $branchResolver)
     {
-        $shipments = Shipment::with(['customer', 'agent'])->get();
-        return response()->json($shipments);
+        $this->branchResolver = $branchResolver;
     }
 
+    /* =======================
+     * LIST SHIPMENTS
+     * ======================= */
+    public function index()
+    {
+        return response()->json(
+            Shipment::with([
+                'customer',
+                'agent',
+                'currentStatus'
+            ])->orderBy('created_at', 'desc')->get()
+        );
+    }
+
+    /* =======================
+     * CREATE SHIPMENT
+     * ======================= */
     public function store(Request $request)
     {
-        // 1️⃣ Validate dữ liệu
         $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'agent_id' => 'nullable|exists:agents,id',
+
+            'current_branch_id' => 'nullable|exists:branches,id',
+            'current_status_id' => 'required|exists:shipment_statuses,id',
 
             'sender_name' => 'required|string|max:255',
             'sender_address' => 'required|string|max:255',
@@ -38,26 +60,54 @@ class ShipmentController extends Controller
             'weight' => 'required|numeric|min:0.1',
             'charge' => 'required|numeric|min:0',
 
-            'current_status_id' => 'required|exists:shipment_statuses,id',
             'expected_delivery_date' => 'nullable|date',
         ]);
 
-        return DB::transaction(function () use ($validated, $request) {
+        return DB::transaction(function () use ($validated) {
 
+            /* =======================
+             * AUTO RESOLVE BRANCH
+             * ======================= */
+            if (empty($validated['current_branch_id'])) {
+
+
+                $branch = $this->branchResolver
+                    ->resolveByCity($validated['sender_city'] ?? null);
+
+                
+                if (!$branch) {
+                    $branch = Branch::where('city', $validated['sender_city'])
+                        ->where('status', 'ACTIVE')
+                        ->first();
+                }
+
+                if (!$branch) {
+                    return response()->json([
+                        'message' => 'Chưa có chi nhánh phục vụ khu vực gửi'
+                    ], 422);
+                }
+
+                $validated['current_branch_id'] = $branch->id;
+            }
+
+            /* =======================
+             * CREATE SHIPMENT
+             * ======================= */
             $validated['tracking_number'] = 'TRK-' . strtoupper(Str::random(10));
-
-
             $shipment = Shipment::create($validated);
 
-            $updatedBy = $request->input('updated_by');
-
-            DB::table('tracking')->insert([
+            /* =======================
+             * CREATE TRACKING (IN)
+             * ======================= */
+            DB::table('trackings')->insert([
                 'shipment_id'    => $shipment->id,
+                'from_branch_id' => null,
+                'to_branch_id'   => $validated['current_branch_id'],
                 'status_id'      => $validated['current_status_id'],
-                'branch_id'      => null,
-                'updated_by'     => $updatedBy,
+                'updated_by'     => Auth::id(),
                 'direction_flag' => 'IN',
                 'note'           => 'Đơn hàng được tạo',
+                'created_at'     => now(),
                 'updated_at'     => now(),
             ]);
 
@@ -65,79 +115,147 @@ class ShipmentController extends Controller
         });
     }
 
-    // Lấy chi tiết lô hàng
+    /* =======================
+     * SHOW SHIPMENT
+     * ======================= */
     public function show($id)
     {
         $shipment = Shipment::with(['customer', 'agent'])->findOrFail($id);
         return response()->json($shipment);
     }
 
-    // Cập nhật lô hàng
+    /* =======================
+     * UPDATE SHIPMENT
+     * ======================= */
     public function update(Request $request, $id)
     {
         $shipment = Shipment::findOrFail($id);
 
-        $request->validate([
-            'tracking_number' => 'sometimes|required|string|unique:shipments,tracking_number,' . $id,
-            'customer_id' => 'sometimes|required|exists:customers,id',
+        $validated = $request->validate([
             'agent_id' => 'sometimes|nullable|exists:agents,id',
+            'current_branch_id' => 'sometimes|exists:branches,id',
+            'current_status_id' => 'sometimes|exists:shipment_statuses,id',
 
-            'sender_name' => 'sometimes|required|string|max:255',
-            'sender_address' => 'sometimes|required|string|max:255',
+            'sender_name' => 'sometimes|string|max:255',
+            'sender_address' => 'sometimes|string|max:255',
             'sender_phone' => 'sometimes|nullable|string|max:20',
             'sender_city' => 'sometimes|nullable|string|max:255',
 
-            'receiver_name' => 'sometimes|required|string|max:255',
-            'receiver_address' => 'sometimes|required|string|max:255',
+            'receiver_name' => 'sometimes|string|max:255',
+            'receiver_address' => 'sometimes|string|max:255',
             'receiver_phone' => 'sometimes|nullable|string|max:20',
             'receiver_city' => 'sometimes|nullable|string|max:255',
 
-            'shipment_service_code' => 'sometimes|required|exists:shipment_services,code',
+            'shipment_service_code' => 'sometimes|exists:shipment_services,code',
+            'weight' => 'sometimes|numeric|min:0.1',
+            'charge' => 'sometimes|numeric|min:0',
 
-            'weight' => 'sometimes|required|numeric|min:0.1',
-            'charge' => 'sometimes|required|numeric|min:0',
-
-            'current_status_id' => 'sometimes|required|exists:shipment_statuses,id',
             'expected_delivery_date' => 'sometimes|nullable|date',
         ]);
 
-        $shipment->update($request->all());
+        if (empty($validated)) {
+            return response()->json($shipment);
+        }
 
-        return response()->json($shipment);
+        return DB::transaction(function () use ($shipment, $validated) {
+
+            $oldBranchId = $shipment->current_branch_id;
+            $oldStatusId = $shipment->current_status_id;
+
+            $shipment->update($validated);
+
+            $hasBranchChange = isset($validated['current_branch_id'])
+                && $validated['current_branch_id'] != $oldBranchId;
+
+            $hasStatusChange = isset($validated['current_status_id'])
+                && $validated['current_status_id'] != $oldStatusId;
+
+            if ($hasBranchChange || $hasStatusChange) {
+
+                /* ========= OUT ========= */
+                if ($hasBranchChange && $oldBranchId) {
+                    DB::table('trackings')->insert([
+                        'shipment_id'    => $shipment->id,
+                        'from_branch_id' => $oldBranchId,
+                        'to_branch_id'   => $validated['current_branch_id'],
+                        'status_id'      => $oldStatusId,
+                        'updated_by'     => Auth::id(),
+                        'direction_flag' => 'OUT',
+                        'note'           => 'Xuất hàng khỏi chi nhánh',
+                        'created_at'     => now(),
+                        'updated_at'     => now(),
+                    ]);
+                }
+
+                /* ========= IN ========= */
+                DB::table('trackings')->insert([
+                    'shipment_id'    => $shipment->id,
+                    'from_branch_id' => $hasBranchChange ? $oldBranchId : null,
+                    'to_branch_id'   => $hasBranchChange
+                        ? $validated['current_branch_id']
+                        : $shipment->current_branch_id,
+                    'status_id'      => $hasStatusChange
+                        ? $validated['current_status_id']
+                        : $shipment->current_status_id,
+                    'updated_by'     => Auth::id(),
+                    'direction_flag' => 'IN',
+                    'note'           => $hasStatusChange
+                        ? 'Cập nhật trạng thái'
+                        : 'Cập nhật chi nhánh',
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
+
+            return response()->json($shipment);
+        });
     }
 
+    /* =======================
+     * DELETE
+     * ======================= */
     public function destroy($id)
     {
-        $shipment = Shipment::findOrFail($id);
-        $shipment->delete();
+        Shipment::findOrFail($id)->delete();
         return response()->json(['message' => 'Shipment deleted successfully']);
     }
+
+    /* =======================
+     * TRACKING PUBLIC API
+     * ======================= */
     public function track($tracking_number)
     {
-        $shipment = Shipment::with(['customer', 'agent', 'trackingHistory'])->where('tracking_number', $tracking_number)->first();
+        $shipment = Shipment::with([
+            'currentStatus',
+            'trackingHistory.status',
+            'trackingHistory.branch'
+        ])->where('tracking_number', $tracking_number)->first();
 
         if (!$shipment) {
             return response()->json(['message' => 'Vận đơn không tồn tại'], 404);
         }
 
-        // Chuẩn hóa dữ liệu cho frontend
         return response()->json([
             'tracking_number' => $shipment->tracking_number,
-            'status' => optional($shipment->currentStatus)->name ?? 'Chưa cập nhật',
-            'current_location' => optional($shipment->trackingHistory()->latest()->first())->branch_name ?? 'Chưa xác định',
+            'status' => $shipment->currentStatus->name ?? 'Chưa cập nhật',
+            'current_location' => optional(
+                $shipment->trackingHistory->last()?->branch
+            )->name ?? 'Chưa xác định',
             'estimated_delivery' => $shipment->expected_delivery_date,
-            'history' => $shipment->trackingHistory()->orderBy('created_at')->get()->map(function ($item) {
-                return [
-                    'status' => optional($item->status)->name,
-                    'location' => $item->branch_name ?? 'Chưa xác định',
-                    'time' => $item->updated_at->format('Y-m-d H:i'),
-                ];
-            }),
+            'history' => $shipment->trackingHistory->map(fn ($t) => [
+                'status' => $t->status->name ?? '',
+                'location' => $t->branch?->name ?? 'Không xác định',
+                'time' => $t->created_at->format('Y-m-d H:i'),
+            ]),
         ]);
     }
+
+    /* =======================
+     * MY ORDERS
+     * ======================= */
     public function myOrders(Request $request)
     {
-        $customerId = $request->query('customer_id'); // hoặc $request->input('customer_id')
+        $customerId = $request->query('customer_id');
 
         if (!$customerId) {
             return response()->json(['message' => 'customer_id is required'], 400);
@@ -146,27 +264,25 @@ class ShipmentController extends Controller
         $shipments = Shipment::with([
             'trackingHistory.status',
             'trackingHistory.branch',
-            'trackingHistory.updater',
-            'service' 
+            'service',
+            'currentStatus'
         ])
             ->where('customer_id', $customerId)
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($shipment) {
-                return [
-                    'id' => $shipment->id,
-                    'tracking_number' => $shipment->tracking_number,
-                    'status' => $shipment->currentStatus->name ?? 'Chưa cập nhật',
-                    'service' => $shipment->service->name ?? '',
-                    'created_at' => $shipment->created_at->format('Y-m-d H:i'),
-                    'estimated_delivery' => $shipment->expected_delivery_date,
-                    'history' => $shipment->trackingHistory->map(fn($t) => [
-                        'status' => $t->status->name,
-                        'location' => $t->branch?->name ?? 'Không xác định',
-                        'time' => $t->created_at->format('Y-m-d H:i'),
-                    ]),
-                ];
-            });
+            ->map(fn ($shipment) => [
+                'id' => $shipment->id,
+                'tracking_number' => $shipment->tracking_number,
+                'status' => $shipment->currentStatus->name ?? 'Chưa cập nhật',
+                'service' => $shipment->service->name ?? '',
+                'created_at' => $shipment->created_at->format('Y-m-d H:i'),
+                'estimated_delivery' => $shipment->expected_delivery_date,
+                'history' => $shipment->trackingHistory->map(fn ($t) => [
+                    'status' => $t->status->name,
+                    'location' => $t->branch?->name ?? 'Không xác định',
+                    'time' => $t->created_at->format('Y-m-d H:i'),
+                ]),
+            ]);
 
         return response()->json($shipments);
     }

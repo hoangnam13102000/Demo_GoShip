@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -8,23 +9,30 @@ class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('customers')->insert([
-            [
-                'account_id' => 4, // user1@courier.com
-                'full_name' => 'Nguyễn Văn A',
-                'phone' => '0987000100',
-                'address' => '123 Đường Lê Lợi',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'account_id' => 5, // user2@courier.com
-                'full_name' => 'Trần Thị B',
-                'phone' => '0987000200',
-                'address' => '456 Đường Nguyễn Huệ',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        $users = DB::table('accounts')->where('role', 'USER')->get();
+
+        $fullNames = [
+            'Nguyễn Văn An',
+            'Trần Thị Bích',
+            'Lê Minh Quân',
+            'Phạm Ngọc Lan',
+            'Hoàng Đức Thắng',
+            'Võ Thị Mai',
+            'Đặng Quốc Huy',
+            'Bùi Thanh Tâm',
+        ];
+
+        $i = 0;
+
+        foreach ($users as $user) {
+            DB::table('customers')->insert([
+                'account_id' => $user->id,
+                'full_name'  => $fullNames[$i % count($fullNames)],
+                'phone'      => '0903' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
+                'address'    => '123 Nguyễn Trãi, Quận 1, Tp. Hồ Chí Minh',
+            ]);
+
+            $i++;
+        }
     }
 }

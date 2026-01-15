@@ -3,6 +3,27 @@ import { FaUser, FaBox, FaMoneyBillWave, FaCheckCircle } from 'react-icons/fa';
 
 const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
   const calculateCostBreakdown = () => {
+    if (form.basePrice && form.basePrice > 0) {
+      const weight = parseFloat(form.package?.weight) || 0;
+      const kgRate = 5000;
+      const baseFee = form.basePrice;
+      const weightFee = weight * kgRate;
+      const fragileFee = form.package?.fragile ? 5000 : 0;
+      const total = baseFee + weightFee + fragileFee;
+
+      return {
+        baseFee,
+        weightFee,
+        fragileFee,
+        total,
+        weight,
+        kgRate,
+        label: form.serviceName || 'Không xác định',
+        fromHome: true,
+      };
+    }
+
+    // Nếu không có dữ liệu từ home, sử dụng SHIPMENT_TYPES cũ
     const shipmentType =
       shipmentTypes.find((t) => t.id === form.shipmentType) || null;
 
@@ -22,6 +43,7 @@ const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
       weight,
       kgRate,
       label: shipmentType?.label || 'Không xác định',
+      fromHome: false,
     };
   };
 
@@ -62,6 +84,11 @@ const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
             <span className="text-gray-600">Mô tả:</span>{' '}
             <span className="font-semibold">{form.package.description}</span>
           </p>
+          {costBreakdown.fromHome && (
+            <p className="text-xs text-blue-600 italic pt-2">
+              ℹ️ Sử dụng dữ liệu dịch vụ từ trang chủ
+            </p>
+          )}
         </div>
       </div>
 
@@ -103,7 +130,7 @@ const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
           <div className="flex justify-between">
             <span className="text-gray-600">
               Phí cân nặng ({costBreakdown.weight}kg ×{' '}
-              {costBreakdown.kgRate}₫):
+              {costBreakdown.kgRate.toLocaleString('vi-VN')}₫):
             </span>
             <span className="font-semibold">
               {costBreakdown.weightFee.toLocaleString('vi-VN')}₫

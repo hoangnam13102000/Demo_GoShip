@@ -15,8 +15,7 @@ import ContactPage from "../pages/client/Contact";
 import ServicesPage from "../pages/client/Services";
 import BlogPage from "../pages/client/Blog";
 import CreateShipmentPage from "../pages/client/CreateShipmentPage";
-import TrackingPage from "../pages/client/TrackingPage";
-import MyOrdersPage from "../pages/client/MyOrders";
+
 import NotFound from "../pages/404";
 import ProfilePage from "../pages/client/Profile/index.jsx";
 
@@ -27,18 +26,16 @@ import AdminAccountsPage from "../pages/admin/AccountManagement";
 import AdminAgentsPage from "../pages/admin/AdminAgentsPage";
 import AdminCustomersPage from "../pages/admin/AdminCustomersPage.jsx";
 import AdminShipmentServicesPage from "../pages/admin/AdminShipmentServicesPage";
-import AdminShipmentsPage from "../pages/admin/AdminShipmentsPage/index.jsx";
 import AdminBranchesPage from "../pages/admin/AdminBranchesPage/index.jsx";
 import AdminBillsPage from "../pages/admin/AdminBillsPage/index.jsx";
 import DashboardReport from "../pages/admin/ReportAdminPage"
+import AdminDeliveriesPage from "../pages/admin/AdminDeliveriesPage/index.jsx";
 
 // ===== AGENT =====
 import AgentDashboard from "../pages/agent/Layout";
-import AgentShipmentServicesPage from "../pages/agent/AgentShipmentServicesPage/index.jsx";
 import AgentBillsPage from "../pages/agent/AgentBillsPage/index.jsx";
 import BranchAgentsPage from "../pages/agent/BranchAgentsPage/index.jsx";
 import ReportAgentPage from "../pages/agent/ReportAgentPage/index.jsx";
-import { elements } from "chart.js";
 
 // ================= USER ROUTER =================
 const userRouter = [
@@ -50,10 +47,9 @@ const userRouter = [
   { path: ROUTERS.USER.CONTACT, element: <ContactPage /> },
   { path: ROUTERS.USER.SERVICES, element: <ServicesPage /> },
   { path: ROUTERS.USER.CREATESHIPMENTPAGE, element: <CreateShipmentPage /> },
-  { path: ROUTERS.USER.TRACKINGPAGE, element: <TrackingPage /> },
   { path: ROUTERS.USER.BLOG, element: <BlogPage /> },
-  { path: ROUTERS.USER.MYORDERS, element: <MyOrdersPage /> },
-  { path: ROUTERS.USER.PROFILE, element: <ProfilePage/>}
+  { path: ROUTERS.USER.PROFILE, element: <ProfilePage /> },
+  { path: ROUTERS.USER.DELIVERIES, element: <AdminDeliveriesPage /> }
 
 ];
 
@@ -64,17 +60,18 @@ const adminRouter = [
   { path: ROUTERS.ADMIN.AGENTS, element: <AdminAgentsPage /> },
   { path: ROUTERS.ADMIN.CUSTOMERS, element: <AdminCustomersPage /> },
   { path: ROUTERS.ADMIN.SERVICES, element: <AdminShipmentServicesPage /> },
-  { path: ROUTERS.ADMIN.SHIPMENTS, element: <AdminShipmentsPage /> },
   { path: ROUTERS.ADMIN.BRANCHES, element: <AdminBranchesPage /> },
   { path: ROUTERS.ADMIN.BILL, element: <AdminBillsPage /> },
-  { path: ROUTERS.ADMIN.REPORT, element: <DashboardReport /> }
+  { path: ROUTERS.ADMIN.REPORT, element: <DashboardReport /> },
+  {path: ROUTERS.ADMIN.DELIVERIES, element: <AdminDeliveriesPage /> },
+ 
 ];
 
 // ================= AGENT ROUTER =================
 const agentRouter = [
   { path: ROUTERS.AGENTS.DASHBOARD, element: <Dashboard /> },
   { path: ROUTERS.AGENTS.CUSTOMERS, element: <AdminCustomersPage /> },
-  { path: ROUTERS.AGENTS.SHIPMENTS, element: <AdminShipmentsPage/>},
+  { path: ROUTERS.AGENTS.DELIVERIES, element: <AdminDeliveriesPage /> },
   { path: ROUTERS.AGENTS.BILL, element: <AgentBillsPage/>},
   { path: ROUTERS.AGENTS.AGENTS, element: <BranchAgentsPage/>},
   { path: ROUTERS.AGENTS.REPORT, element: <ReportAgentPage/>},

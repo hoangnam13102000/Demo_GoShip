@@ -3,50 +3,32 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Tracking extends Model
 {
-    use HasFactory;
-
-    protected $table = 'tracking';
-
-    public $timestamps = true;
-
     protected $fillable = [
         'shipment_id',
+        'from_branch_id',
+        'to_branch_id',
         'status_id',
-        'branch_id',
-        'updated_by',
         'direction_flag',
-        'note',
-        'updated_at',
-        
+        'updated_by',
+        'note'
     ];
 
-    protected $casts = [
-        'updated_at' => 'datetime',
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    public function shipment()
+    public function fromBranch()
     {
-        return $this->belongsTo(Shipment::class);
+        return $this->belongsTo(Branch::class, 'from_branch_id');
+    }
+
+    public function toBranch()
+    {
+        return $this->belongsTo(Branch::class, 'to_branch_id');
     }
 
     public function status()
     {
-        return $this->belongsTo(ShipmentStatus::class, 'status_id');
-    }
-
-    public function branch()
-    {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(ShipmentStatus::class);
     }
 
     public function updater()
@@ -54,3 +36,4 @@ class Tracking extends Model
         return $this->belongsTo(Account::class, 'updated_by');
     }
 }
+

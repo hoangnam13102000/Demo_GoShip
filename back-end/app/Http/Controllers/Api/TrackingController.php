@@ -7,7 +7,6 @@ use App\Models\Tracking;
 use App\Models\Shipment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Carbon;
 
 class TrackingController extends Controller
 {
@@ -18,11 +17,12 @@ class TrackingController extends Controller
     {
         $tracking = Tracking::with([
                 'status:id,code,name',
-                'branch:id,name',
+                'fromBranch:id,name',
+                'toBranch:id,name',
                 'updater:id,name'
             ])
             ->where('shipment_id', $shipmentId)
-            ->orderBy('updated_at', 'asc')
+            ->orderBy('created_at', 'asc')
             ->get();
 
         return response()->json($tracking);
@@ -36,7 +36,10 @@ class TrackingController extends Controller
         $validated = $request->validate([
             'shipment_id'     => 'required|exists:shipments,id',
             'status_id'       => 'required|exists:shipment_statuses,id',
-            'branch_id'       => 'nullable|exists:branches,id',
+
+            'from_branch_id'  => 'nullable|exists:branches,id',
+            'to_branch_id'    => 'nullable|exists:branches,id',
+
             'direction_flag'  => 'required|in:IN,OUT',
             'note'            => 'nullable|string|max:500',
         ]);
@@ -44,11 +47,11 @@ class TrackingController extends Controller
         $tracking = Tracking::create([
             'shipment_id'    => $validated['shipment_id'],
             'status_id'      => $validated['status_id'],
-            'branch_id'      => $validated['branch_id'] ?? null,
+            'from_branch_id' => $validated['from_branch_id'] ?? null,
+            'to_branch_id'   => $validated['to_branch_id'] ?? null,
             'direction_flag' => $validated['direction_flag'],
             'note'           => $validated['note'] ?? null,
             'updated_by'     => Auth::id(),
-            'updated_at'     => Carbon::now(),
         ]);
 
         // cập nhật trạng thái hiện tại của shipment
@@ -59,7 +62,12 @@ class TrackingController extends Controller
 
         return response()->json([
             'message' => 'Tracking updated successfully',
-            'data'    => $tracking
+            'data'    => $tracking->load([
+                'status:id,code,name',
+                'fromBranch:id,name',
+                'toBranch:id,name',
+                'updater:id,name'
+            ])
         ], 201);
     }
 }

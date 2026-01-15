@@ -9,11 +9,36 @@ class ShipmentStatusSeeder extends Seeder
     public function run(): void
     {
         DB::table('shipment_statuses')->insert([
-            ['code' => 'S001','name'=>'PLACED','created_at'=>now(),'updated_at'=>now()],
-            ['code' => 'S002','name'=>'PICKED_UP','created_at'=>now(),'updated_at'=>now()],
-            ['code' => 'S003','name'=>'IN_TRANSIT','created_at'=>now(),'updated_at'=>now()],
-            ['code' => 'S004','name'=>'DELIVERED','created_at'=>now(),'updated_at'=>now()],
-            ['code' => 'S005','name'=>'CANCELLED','created_at'=>now(),'updated_at'=>now()],
+            [
+                'code' => 'PLACED',
+                'name' => 'Đã tạo đơn',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'code' => 'PICKED_UP',
+                'name' => 'Đã lấy hàng',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'code' => 'IN_TRANSIT',
+                'name' => 'Đang vận chuyển',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'code' => 'DELIVERED',
+                'name' => 'Đã giao hàng',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'code' => 'CANCELLED',
+                'name' => 'Đã huỷ',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

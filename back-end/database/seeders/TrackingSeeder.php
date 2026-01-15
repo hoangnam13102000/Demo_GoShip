@@ -10,40 +10,37 @@ class TrackingSeeder extends Seeder
 {
     public function run(): void
     {
-        $shipments = DB::table('shipments')->pluck('id');
-        $statuses  = DB::table('shipment_statuses')->pluck('id');
-        $branches  = DB::table('branches')->pluck('id');
-        $accounts  = DB::table('accounts')->pluck('id');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('trackings')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        if (
-            $shipments->isEmpty() ||
-            $statuses->isEmpty() ||
-            $branches->isEmpty() ||
-            $accounts->isEmpty()
-        ) {
-            $this->command->warn('TrackingSeeder skipped: missing required data.');
+        $shipments = DB::table('shipments')->get();
+
+        $statusId = DB::table('shipment_statuses')
+            ->where('code', 'PLACED')
+            ->value('id');
+
+        if (!$statusId) {
+            $this->command->error('Shipment status PLACED not found');
             return;
         }
 
-        foreach ($shipments as $shipmentId) {
+        $accountId = DB::table('accounts')
+            ->where('role', 'ADMIN')
+            ->value('id');
 
-            $logCount = rand(2, 5);
-            $time = Carbon::now()->subDays($logCount);
-
-            for ($i = 0; $i < $logCount; $i++) {
-
-                DB::table('tracking')->insert([
-                    'shipment_id'    => $shipmentId,
-                    'status_id'      => $statuses->random(),
-                    'branch_id'      => $branches->random(),
-                    'updated_by'     => $accounts->random(),
-                    'direction_flag' => rand(0, 1) ? 'IN' : 'OUT',
-                    'note'           => 'Auto generated tracking log',
-                    'updated_at'     => $time->addHours(rand(3, 8)),
-                ]);
-            }
+        foreach ($shipments as $shipment) {
+            DB::table('trackings')->insert([
+                'shipment_id'    => $shipment->id,
+                'status_id'      => $statusId,
+                'from_branch_id' => null,
+                'to_branch_id'   => $shipment->current_branch_id,
+                'updated_by'     => $accountId,
+                'direction_flag' => 'IN',
+                'note'           => 'Auto tracking: Đã tạo đơn',
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
         }
-
-        $this->command->info('TrackingSeeder completed.');
     }
 }

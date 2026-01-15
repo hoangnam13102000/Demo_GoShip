@@ -11,7 +11,7 @@ class Branch extends Model
 
     protected $fillable = [
         'name',
-        'city',        // thêm city
+        'city',       
         'address',
         'phone',
         'status',

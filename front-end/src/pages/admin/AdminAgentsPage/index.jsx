@@ -18,7 +18,7 @@ const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
 const initialForm = {
   account_id: "",
   branch_id: "",
-  contact_number: "",
+  phone: "",
   is_active: true,
 };
 
@@ -97,7 +97,7 @@ const AdminAgentsPage = () => {
     setForm({
       account_id: agent.account_id || "",
       branch_id: agent.branch_id || "",
-      contact_number: agent.contact_number || "",
+      phone: agent.phone || "",
       is_active: toBool(agent.status || "ACTIVE"),
     });
     setShowModal(true);
@@ -108,7 +108,7 @@ const AdminAgentsPage = () => {
     const payload = {
       account_id: form.account_id,
       branch_id: form.branch_id,
-      contact_number: form.contact_number,
+      phone: form.phone,
       status: toStatus(form.is_active),
     };
 
@@ -124,7 +124,7 @@ const AdminAgentsPage = () => {
         return (
           String(agent.account_id).includes(keyword) ||
           String(agent.branch_id).includes(keyword) ||
-          agent.contact_number?.toLowerCase().includes(keyword)
+          agent.phone?.toLowerCase().includes(keyword)
         );
       })
       .filter((agent) => {
@@ -213,9 +213,9 @@ const AdminAgentsPage = () => {
               render: (row) => row.branch_id,
             },
             {
-              key: "contact_number",
+              key: "phone",
               title: "SĐT",
-              render: (row) => row.contact_number || "-",
+              render: (row) => row.phone || "-",
             },
             {
               key: "status",
@@ -266,7 +266,7 @@ const AdminAgentsPage = () => {
             required: true,
           },
           {
-            name: "contact_number",
+            name: "phone",
             type: "text",
             label: "Số điện thoại",
             required: false,

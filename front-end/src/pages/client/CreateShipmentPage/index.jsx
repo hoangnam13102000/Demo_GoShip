@@ -34,7 +34,9 @@ const CreateShipmentPage = () => {
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
-    shipmentType: "STANDARD",
+    shipmentType: serviceFromHome?.service_code || "STANDARD",
+    serviceName: serviceFromHome?.service_name || "",
+    basePrice: serviceFromHome?.base_price || 0,
     sender: {
       full_name: "",
       phone: "",
@@ -88,6 +90,9 @@ const CreateShipmentPage = () => {
 
     setForm((prev) => ({
       ...prev,
+      shipmentType: serviceFromHome.service_code || prev.shipmentType,
+      serviceName: serviceFromHome.service_name || prev.serviceName,
+      basePrice: serviceFromHome.base_price || prev.basePrice,
       package: {
         ...prev.package,
         weight: prev.package.weight || 1,
@@ -173,6 +178,16 @@ const CreateShipmentPage = () => {
   };
 
   const calculateFee = () => {
+    // Nếu có service từ home, sử dụng base_price từ service đó
+    if (serviceFromHome?.base_price) {
+      const weight = parseFloat(form.package.weight) || 0;
+      const fragile = form.package.fragile ? 5000 : 0;
+      // Giả sử kg_price là 5000, có thể điều chỉnh theo nhu cầu
+      const kg_price = 5000;
+      return form.basePrice + weight * kg_price + fragile;
+    }
+
+    // Nếu không, sử dụng SHIPMENT_TYPES cũ
     const s = SHIPMENT_TYPES.find((t) => t.id === form.shipmentType);
     if (!s) return 0;
     const weight = parseFloat(form.package.weight) || 0;
@@ -186,34 +201,37 @@ const CreateShipmentPage = () => {
 
     const payload = {
       customer_id: profile?.customer_id,
+      current_branch_id: profile?.branch_id || 1,
       current_status_id: 1,
-
+      // Sender
       sender_name: form.sender.full_name,
       sender_phone: form.sender.phone,
       sender_address: form.sender.address,
       sender_city: form.sender.city,
 
+      // Receiver
       receiver_name: form.receiver.full_name,
       receiver_phone: form.receiver.phone,
       receiver_address: form.receiver.address,
       receiver_city: form.receiver.city,
 
-      shipment_service_code: serviceFromHome?.service_code || form.shipmentType,
+      // Service
+      shipment_service_code: form.shipmentType,
 
+      // Pricing
       weight: Number(form.package.weight || 1),
       charge: calculateFee(),
 
+      // Optional
       agent_id: null,
-      branch_id: null,
       expected_delivery_date: null,
-
-      updated_by: profile?.id,
     };
 
     console.group(" CREATE SHIPMENT PAYLOAD");
     console.log("payload =", payload);
     console.log("serviceFromHome =", serviceFromHome);
-    console.log("shipment_service_code =", payload.shipment_service_code);
+    console.log("service_name =", form.serviceName);
+    console.log("base_price =", form.basePrice);
     console.log("profile =", profile);
     console.groupEnd();
 
@@ -252,7 +270,8 @@ const CreateShipmentPage = () => {
               Tạo đơn vận chuyển
             </h1>
             <p className="text-gray-500 text-sm mt-1">
-              {SHIPMENT_TYPES.find((s) => s.id === form.shipmentType)?.label}
+              {form.serviceName ||
+                SHIPMENT_TYPES.find((s) => s.id === form.shipmentType)?.label}
             </p>
           </div>
         </div>

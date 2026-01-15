@@ -11,8 +11,8 @@ export const ROUTERS = {
     BLOG: "/blog",
     CREATESHIPMENTPAGE: "/tao-don-hang",
     TRACKINGPAGE: "/tra-cuu-don-hang",
-    MYORDERS: "/don-hang-cua-toi",
     PROFILE: "/profile",
+    DELIVERIES: "/don-hang-cua-toi",
     NOTFOUND: "/404",
   },
 
@@ -22,19 +22,22 @@ export const ROUTERS = {
     AGENTS: "admin/quan-ly-agent",
     CUSTOMERS: "/admin/quan-ly-khach-hang",
     SERVICES: "/admin/quan-ly-dich-vu",
-    SHIPMENTS: "/admin/quan-ly-don-hang",
+   
+    DELIVERIES: "/admin/quan-ly-giao-hang",
     BRANCHES: "/admin/quan-ly-chi-nhanh",
     BILL: "/admin/quan-ly-hoa-don",
     REPORT: "/admin/bao-cao",
+    SHIPMENTSTRACKING: "/admin/quan-ly-don-hang"
   },
   AGENTS: {
     DASHBOARD: "/agent",
     AGENTS: "/agent/quan-ly-nhan-vien",
     CUSTOMERS: "/agent/quan-ly-khach-hang",
     SHIPMENTS: "/agent/quan-ly-don-hang",
-    BILL: "/agent/quan-ly-hoa-don",
     REPORT: "/agent/bao-cao",
-    PROFILE: "/agent/profile"
+    PROFILE: "/agent/profile",
+    DELIVERIES: "/agent/quan-ly-don-hang",
+    BILL: "/agent/quan-ly-hoa-don"
   },
 };
 

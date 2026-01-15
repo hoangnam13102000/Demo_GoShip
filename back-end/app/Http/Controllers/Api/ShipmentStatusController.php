@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\ShipmentStatus;
 use Illuminate\Http\Request;
 
 class ShipmentStatusController extends Controller
 {
     // Lấy danh sách tất cả trạng thái
-    public function index()
+     public function index()
     {
-        $statuses = ShipmentStatus::all();
-        return response()->json($statuses);
+        return response()->json(
+            ShipmentStatus::select('id', 'code', 'name')->orderBy('id')->get()
+        );
     }
 
     // Tạo trạng thái mới

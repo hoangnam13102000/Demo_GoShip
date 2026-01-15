@@ -25,9 +25,11 @@ const useHandleCRUD = ({
    * SUBMIT CREATE / UPDATE
    */
   const handleSubmit = async (e, editing, formData) => {
-    
     if (e && typeof e.preventDefault === "function") {
       e.preventDefault();
+      console.log("Submitting data:", formData);
+      console.log("Data type of weight:", typeof formData.weight);
+      console.log("Data type of charge:", typeof formData.charge);
     }
 
     setSuccessMessage("");
@@ -53,7 +55,7 @@ const useHandleCRUD = ({
 
       // ================= UPDATE =================
       const payload = { ...formData };
-      delete payload.email; 
+      delete payload.email;
       await updateMutation.mutateAsync({
         id: editing.id,
         data: payload,
@@ -79,8 +81,7 @@ const useHandleCRUD = ({
         mode: "error",
         title: "Thao tác thất bại",
         message,
-        onConfirm: () =>
-          setDialog((prev) => ({ ...prev, open: false })),
+        onConfirm: () => setDialog((prev) => ({ ...prev, open: false })),
       });
     }
   };
@@ -103,21 +104,18 @@ const useHandleCRUD = ({
             mode: "success",
             title: "Xóa thành công",
             message: `Xóa ${entity} thành công`,
-            onConfirm: () =>
-              setDialog((prev) => ({ ...prev, open: false })),
+            onConfirm: () => setDialog((prev) => ({ ...prev, open: false })),
           });
         } catch (error) {
           const message =
-            error?.response?.data?.message ||
-            `Không thể xóa ${entity}`;
+            error?.response?.data?.message || `Không thể xóa ${entity}`;
 
           setDialog({
             open: true,
             mode: "error",
             title: "Xóa thất bại",
             message,
-            onConfirm: () =>
-              setDialog((prev) => ({ ...prev, open: false })),
+            onConfirm: () => setDialog((prev) => ({ ...prev, open: false })),
           });
         }
       },

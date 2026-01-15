@@ -8,15 +8,15 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\ShipmentController;
 use App\Http\Controllers\Api\ShipmentServiceController;
-
+use App\Http\Controllers\Api\ShipmentStatusController; 
+use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BillController;
-use App\Http\Controllers\NotificationTemplateController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\DashboardController;
-
+use App\Http\Controllers\Api\ShipmentTransferController;
 
 
 
@@ -61,9 +61,14 @@ Route::apiResource('notifications', NotificationController::class);
 Route::apiResource('reports', ReportController::class);
 Route::apiResource('branches', BranchController::class);
 Route::apiResource('bills', BillController::class);
+Route::apiResource('shipment-statuses', ShipmentStatusController::class);
+Route::apiResource('tracking', TrackingController::class);
 Route::apiResource('shipment-services', ShipmentServiceController::class);
-Route::apiResource('notification-templates', NotificationTemplateController::class);
 Route::get('/ping', function () {
     return response()->json(['message' => 'API is working']);
 });
- Route::get('/profile/{accountId}', [ProfileController::class, 'getProfile']);
+Route::get('/profile/{accountId}', [ProfileController::class, 'getProfile']);
+Route::post(
+    '/shipments/transfer',
+    [ShipmentTransferController::class, 'transfer']
+);
