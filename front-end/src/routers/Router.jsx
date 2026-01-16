@@ -13,6 +13,7 @@ export const ROUTERS = {
     TRACKINGPAGE: "/tra-cuu-don-hang",
     PROFILE: "/profile",
     DELIVERIES: "/don-hang-cua-toi",
+    MOMORESULT:"/momo-result",
     NOTFOUND: "/404",
   },
 
@@ -27,7 +28,7 @@ export const ROUTERS = {
     BRANCHES: "/admin/quan-ly-chi-nhanh",
     BILL: "/admin/quan-ly-hoa-don",
     REPORT: "/admin/bao-cao",
-    SHIPMENTSTRACKING: "/admin/quan-ly-don-hang"
+  
   },
   AGENTS: {
     DASHBOARD: "/agent",

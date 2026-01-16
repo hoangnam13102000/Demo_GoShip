@@ -1,7 +1,12 @@
-import SummaryCard from '../../../../components/common/Cards/SummaryCard';
-import { FaUser, FaBox, FaMoneyBillWave, FaCheckCircle } from 'react-icons/fa';
+import SummaryCard from "../../../../components/common/Cards/SummaryCard";
+import { FaUser, FaBox, FaMoneyBillWave, FaCheckCircle } from "react-icons/fa";
 
-const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
+const SummaryStep = ({
+  form,
+  shipmentTypes,
+  paymentMethods,
+  onSelectPayment,
+}) => {
   const calculateCostBreakdown = () => {
     if (form.basePrice && form.basePrice > 0) {
       const weight = parseFloat(form.package?.weight) || 0;
@@ -18,17 +23,14 @@ const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
         total,
         weight,
         kgRate,
-        label: form.serviceName || 'Không xác định',
-        fromHome: true,
+        label: form.serviceName || "Không xác định",
       };
     }
 
-    // Nếu không có dữ liệu từ home, sử dụng SHIPMENT_TYPES cũ
     const shipmentType =
       shipmentTypes.find((t) => t.id === form.shipmentType) || null;
 
     const weight = parseFloat(form.package?.weight) || 0;
-
     const baseFee = shipmentType?.base || 0;
     const kgRate = shipmentType?.kg || 0;
     const weightFee = weight * kgRate;
@@ -42,12 +44,11 @@ const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
       total,
       weight,
       kgRate,
-      label: shipmentType?.label || 'Không xác định',
-      fromHome: false,
+      label: shipmentType?.label || "Không xác định",
     };
   };
 
-  const costBreakdown = calculateCostBreakdown();
+  const cost = calculateCostBreakdown();
 
   return (
     <div className="space-y-6">
@@ -66,49 +67,47 @@ const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
         </h3>
         <div className="space-y-2 text-sm">
           <p>
-            <span className="text-gray-600">Loại dịch vụ:</span>{' '}
-            <span className="font-semibold">{costBreakdown.label}</span>
+            <span className="text-gray-600">Loại dịch vụ:</span>{" "}
+            <span className="font-semibold">{cost.label}</span>
           </p>
           <p>
-            <span className="text-gray-600">Cân nặng:</span>{' '}
-            <span className="font-semibold">{costBreakdown.weight}kg</span>
+            <span className="text-gray-600">Cân nặng:</span>{" "}
+            <span className="font-semibold">{cost.weight}kg</span>
           </p>
           <p>
-            <span className="text-gray-600">Kích thước:</span>{' '}
+            <span className="text-gray-600">Kích thước:</span>{" "}
             <span className="font-semibold">
-              {form.package.length || '?'} × {form.package.width || '?'} ×{' '}
-              {form.package.height || '?'} cm
+              {form.package.length || "?"} × {form.package.width || "?"} ×{" "}
+              {form.package.height || "?"} cm
             </span>
           </p>
-          <p>
-            <span className="text-gray-600">Mô tả:</span>{' '}
-            <span className="font-semibold">{form.package.description}</span>
-          </p>
-          {costBreakdown.fromHome && (
-            <p className="text-xs text-blue-600 italic pt-2">
-              ℹ️ Sử dụng dữ liệu dịch vụ từ trang chủ
-            </p>
-          )}
         </div>
       </div>
 
+      {/* PAYMENT */}
       <div>
         <label className="block text-sm font-semibold mb-3 flex items-center gap-2">
           <FaMoneyBillWave className="text-blue-600" /> Phương thức thanh toán
         </label>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {paymentMethods.map((m) => {
-            const PaymentIcon = m.icon;
+            const Icon = m.icon;
             return (
               <div
                 key={m.id}
-                className={`p-4 border-2 rounded-lg text-center ${
-                  form.payment === m.id
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200'
-                }`}
+                onClick={() => {
+                  console.log("💳 SELECT PAYMENT:", m.id);
+                  onSelectPayment(m.id);
+                }}
+                className={`p-4 border-2 rounded-lg text-center cursor-pointer transition
+                  ${
+                    form.payment === m.id
+                      ? "border-blue-600 bg-blue-50"
+                      : "border-gray-200 hover:border-blue-400"
+                  }`}
               >
-                <PaymentIcon className={`text-3xl ${m.color} mx-auto mb-2`} />
+                <Icon className={`text-3xl ${m.color} mx-auto mb-2`} />
                 <p className="text-sm font-semibold">{m.label}</p>
               </div>
             );
@@ -116,38 +115,30 @@ const SummaryStep = ({ form, shipmentTypes, paymentMethods }) => {
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <FaMoneyBillWave className="text-amber-600" /> Tổng hợp chi phí
-        </h3>
-        <div className="space-y-3 text-sm mb-4">
+      {/* COST */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border">
+        <h3 className="font-bold mb-4">Tổng chi phí</h3>
+        <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-600">Phí cơ bản:</span>
-            <span className="font-semibold">
-              {costBreakdown.baseFee.toLocaleString('vi-VN')}₫
-            </span>
+            <span>Phí cơ bản</span>
+            <span>{cost.baseFee.toLocaleString()}₫</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">
-              Phí cân nặng ({costBreakdown.weight}kg ×{' '}
-              {costBreakdown.kgRate.toLocaleString('vi-VN')}₫):
+            <span>
+              Cân nặng ({cost.weight}kg × {cost.kgRate.toLocaleString()}₫)
             </span>
-            <span className="font-semibold">
-              {costBreakdown.weightFee.toLocaleString('vi-VN')}₫
-            </span>
+            <span>{cost.weightFee.toLocaleString()}₫</span>
           </div>
-          {costBreakdown.fragileFee > 0 && (
+          {cost.fragileFee > 0 && (
             <div className="flex justify-between text-red-600">
-              <span>Phí hàng dễ vỡ:</span>
-              <span className="font-semibold">
-                {costBreakdown.fragileFee.toLocaleString('vi-VN')}₫
-              </span>
+              <span>Hàng dễ vỡ</span>
+              <span>{cost.fragileFee.toLocaleString()}₫</span>
             </div>
           )}
-          <div className="border-t border-blue-300 pt-3 flex justify-between text-lg">
-            <span className="font-bold">Tổng cộng:</span>
-            <span className="font-bold text-blue-600">
-              {costBreakdown.total.toLocaleString('vi-VN')}₫
+          <div className="border-t pt-2 flex justify-between font-bold">
+            <span>Tổng cộng</span>
+            <span className="text-blue-600">
+              {cost.total.toLocaleString()}₫
             </span>
           </div>
         </div>

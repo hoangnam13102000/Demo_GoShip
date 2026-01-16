@@ -41,6 +41,8 @@ const HomePage = () => {
   const handleTrackingSearch = async (trackingNumber) => {
     setTrackingLoading(true);
     setTrackingError("");
+    setTrackingData(null); // Reset data trước khi search
+    
     try {
       const res = await axios.get(`/shipments/track/${trackingNumber}`);
       setTrackingData(res.data);
@@ -105,8 +107,28 @@ const HomePage = () => {
 
           {/* ================= Tracking Result ================= */}
           <div className="mt-8">
-            {trackingLoading && <p className="text-center">Đang tải kết quả...</p>}
-            {trackingError && <p className="text-center text-red-500">{trackingError}</p>}
+            {trackingLoading && (
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+                <p className="text-white mt-4 font-medium">Đang tìm kiếm vận đơn...</p>
+              </div>
+            )}
+            
+            {trackingError && (
+              <div className="max-w-2xl mx-auto bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-lg">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-red-800">{trackingError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {trackingData && <TrackingResult data={trackingData} />}
           </div>
         </div>
@@ -119,8 +141,18 @@ const HomePage = () => {
             <h2 className="text-4xl font-bold mb-4">Dịch vụ của chúng tôi</h2>
           </div>
 
-          {isLoading && <p className="text-center">Đang tải...</p>}
-          {isError && <p className="text-center text-red-500">Lỗi tải dữ liệu</p>}
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+              <p className="text-gray-600 mt-4">Đang tải dịch vụ...</p>
+            </div>
+          )}
+          
+          {isError && (
+            <div className="text-center py-12">
+              <p className="text-red-500 font-medium">Lỗi tải dữ liệu dịch vụ</p>
+            </div>
+          )}
 
           {!isLoading && !isError && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -173,7 +205,10 @@ const HomePage = () => {
           <p className="text-blue-100 text-lg mb-10">
             Tạo tài khoản miễn phí và nhận ưu đãi 20% cho 10 đơn hàng đầu tiên
           </p>
-          <button className="px-10 py-4 bg-white text-blue-600 font-bold rounded-lg hover:shadow-xl transition">
+          <button 
+            onClick={() => navigate('/register')}
+            className="px-10 py-4 bg-white text-blue-600 font-bold rounded-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
+          >
             Đăng ký ngay
           </button>
         </div>

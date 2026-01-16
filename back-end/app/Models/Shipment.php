@@ -48,6 +48,7 @@ class Shipment extends Model
 
     public function trackingHistory()
     {
-        return $this->hasMany(Tracking::class);
+        return $this->hasMany(Tracking::class)
+            ->orderBy('created_at');
     }
 }

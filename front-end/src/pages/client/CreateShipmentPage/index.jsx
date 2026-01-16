@@ -18,23 +18,24 @@ import {
   FaCheck,
   FaMoneyBillWave,
   FaCreditCard,
-  FaUniversity,
 } from "react-icons/fa";
+import { FaWallet } from "react-icons/fa";
 import { useCRUDApi } from "../../../api/hooks/useCRUDApi";
+import axios from "../../../api/axios";
 
 const CreateShipmentPage = () => {
   const location = useLocation();
   const serviceFromHome = location.state || null;
 
-  const {
-    profile,
-    loading: profileLoading,
-    error: profileError,
-  } = useProfileApi();
+  const { profile, loading: profileLoading, error: profileError } =
+    useProfileApi();
 
   const [step, setStep] = useState(0);
+  const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState(null);
+
   const [form, setForm] = useState({
-    shipmentType: serviceFromHome?.service_code || "STANDARD",
+    shipmentType: serviceFromHome?.service_code || "DOCUMENT",
     serviceName: serviceFromHome?.service_name || "",
     basePrice: serviceFromHome?.base_price || 0,
     sender: {
@@ -64,14 +65,11 @@ const CreateShipmentPage = () => {
     payment: "CASH",
   });
 
-  const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(null);
-
-  // ================= AUTO FILL PROFILE =================
+  /* ================= AUTO FILL PROFILE ================= */
   useEffect(() => {
     if (profile && profile.role !== "ADMIN") {
-      setForm((prev) => ({
-        ...prev,
+      setForm((p) => ({
+        ...p,
         sender: {
           full_name: profile.full_name || "",
           phone: profile.phone || "",
@@ -84,23 +82,23 @@ const CreateShipmentPage = () => {
     }
   }, [profile]);
 
-  // ================= FROM HOME PAGE =================
+  /* ================= FROM HOME ================= */
   useEffect(() => {
     if (!serviceFromHome) return;
 
-    setForm((prev) => ({
-      ...prev,
-      shipmentType: serviceFromHome.service_code || prev.shipmentType,
-      serviceName: serviceFromHome.service_name || prev.serviceName,
-      basePrice: serviceFromHome.base_price || prev.basePrice,
+    setForm((p) => ({
+      ...p,
+      shipmentType: serviceFromHome.service_code,
+      serviceName: serviceFromHome.service_name,
+      basePrice: serviceFromHome.base_price,
       package: {
-        ...prev.package,
-        weight: prev.package.weight || 1,
+        ...p.package,
+        weight: p.package.weight || 1,
       },
     }));
   }, [serviceFromHome]);
 
-  // ================= CONSTANTS =================
+  /* ================= CONSTANTS ================= */
   const STEPS = [
     { label: "Người gửi", icon: FaUser },
     { label: "Người nhận", icon: FaUser },
@@ -109,93 +107,61 @@ const CreateShipmentPage = () => {
   ];
 
   const SHIPMENT_TYPES = [
-    {
-      id: "STANDARD",
-      label: "Tiêu chuẩn",
-      time: "3-5 ngày",
-      base: 10000,
-      kg: 5000,
-    },
-    { id: "EXPRESS", label: "Nhanh", time: "1-2 ngày", base: 20000, kg: 8000 },
-    {
-      id: "SAME_DAY",
-      label: "Cùng ngày",
-      time: "4-6 giờ",
-      base: 30000,
-      kg: 12000,
-    },
+    { id: "DOCUMENT", label: "Tài liệu", base: 10000, kg: 5000 },
+    { id: "PACKAGE", label: "Hàng hóa", base: 20000, kg: 8000 },
+    { id: "EXPRESS", label: "Hỏa tốc", base: 30000, kg: 12000 },
   ];
 
   const PAYMENT_METHODS = [
-    {
-      id: "CASH",
-      label: "Tiền mặt",
-      icon: FaMoneyBillWave,
-      color: "text-green-600",
-    },
-    {
-      id: "CARD",
-      label: "Thẻ tín dụng",
-      icon: FaCreditCard,
-      color: "text-blue-600",
-    },
-    {
-      id: "BANK",
-      label: "Chuyển khoản",
-      icon: FaUniversity,
-      color: "text-purple-600",
-    },
+    { id: "CASH", label: "Tiền mặt", icon: FaMoneyBillWave },
+    { id: "MOMO", label: "Ví MoMo", icon: FaWallet },
+    { id: "PAYPAL", label: "Thẻ tín dụng", icon: FaCreditCard },
   ];
 
-  // ================= API =================
+  /* ================= API ================= */
   const { useCreate } = useCRUDApi("shipments");
   const createMutation = useCreate();
 
-  // ================= HELPERS =================
+  /* ================= HELPERS ================= */
   const validateStep = (cur) => {
-    const n = FieldValidator.validateStep(cur, form);
-    setErrors(n);
-    return Object.keys(n).length === 0;
+    const e = FieldValidator.validateStep(cur, form);
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleNext = () => validateStep(step) && setStep(step + 1);
-  const handlePrev = () => setStep((s) => Math.max(0, s - 1));
+  const handleNext = () => {
+    if (!validateStep(step)) return;
+    setErrors({});
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  };
+
+  const handlePrev = () => {
+    setErrors({});
+    setStep((s) => Math.max(0, s - 1));
+  };
 
   const updateForm = (section, field, value) => {
     setForm((p) => ({
       ...p,
       [section]: { ...p[section], [field]: value },
     }));
-
-    const key = section + field.charAt(0).toUpperCase() + field.slice(1);
-    if (errors[key]) {
-      setErrors((p) => {
-        const copy = { ...p };
-        delete copy[key];
-        return copy;
-      });
-    }
   };
 
   const calculateFee = () => {
-    // Nếu có service từ home, sử dụng base_price từ service đó
+    const weight = Number(form.package.weight || 0);
+    const fragile = form.package.fragile ? 5000 : 0;
+
     if (serviceFromHome?.base_price) {
-      const weight = parseFloat(form.package.weight) || 0;
-      const fragile = form.package.fragile ? 5000 : 0;
-      // Giả sử kg_price là 5000, có thể điều chỉnh theo nhu cầu
-      const kg_price = 5000;
-      return form.basePrice + weight * kg_price + fragile;
+      return form.basePrice + weight * 5000 + fragile;
     }
 
-    // Nếu không, sử dụng SHIPMENT_TYPES cũ
     const s = SHIPMENT_TYPES.find((t) => t.id === form.shipmentType);
     if (!s) return 0;
-    const weight = parseFloat(form.package.weight) || 0;
-    const fragile = form.package.fragile ? 5000 : 0;
+
     return s.base + weight * s.kg + fragile;
   };
 
-  // ================= SUBMIT =================
+  /* ================= SUBMIT ================= */
   const handleSubmit = () => {
     if (!validateStep(3)) return;
 
@@ -203,89 +169,91 @@ const CreateShipmentPage = () => {
       customer_id: profile?.customer_id,
       current_branch_id: profile?.branch_id || 1,
       current_status_id: 1,
-      // Sender
+
       sender_name: form.sender.full_name,
       sender_phone: form.sender.phone,
       sender_address: form.sender.address,
       sender_city: form.sender.city,
 
-      // Receiver
       receiver_name: form.receiver.full_name,
       receiver_phone: form.receiver.phone,
       receiver_address: form.receiver.address,
       receiver_city: form.receiver.city,
 
-      // Service
       shipment_service_code: form.shipmentType,
-
-      // Pricing
       weight: Number(form.package.weight || 1),
       charge: calculateFee(),
-
-      // Optional
-      agent_id: null,
-      expected_delivery_date: null,
+      payment_method: form.payment,
     };
 
-    console.group(" CREATE SHIPMENT PAYLOAD");
-    console.log("payload =", payload);
-    console.log("serviceFromHome =", serviceFromHome);
-    console.log("service_name =", form.serviceName);
-    console.log("base_price =", form.basePrice);
-    console.log("profile =", profile);
-    console.groupEnd();
-
     createMutation.mutate(payload, {
-      onSuccess: (res) => {
-        setSuccess({
-          tracking: res.tracking_number,
-          fee: res.charge,
-        });
+      onSuccess: async (res) => {
+        // CASH → done
+        if (form.payment !== "MOMO") {
+          setSuccess({
+            tracking: res.tracking_number,
+            fee: res.charge,
+            paymentMethod: form.payment,
+          });
+          return;
+        }
+
+        // MOMO → call create-payment
+        try {
+          const momoRes = await axios.post("/momo/create", {
+            bill_id: res.bill_id,
+          });
+
+          window.location.href = momoRes.data.pay_url;
+        } catch (e) {
+          setErrors({ submit: "Không tạo được link MoMo" });
+        }
       },
       onError: (err) => {
-        console.error("❌ CREATE SHIPMENT ERROR", err?.response?.data);
         setErrors({
-          submit: "Tạo đơn thất bại. Vui lòng kiểm tra lại dữ liệu.",
+          submit:
+            err?.response?.data?.message ||
+            "Tạo đơn thất bại. Vui lòng thử lại.",
         });
       },
     });
   };
 
+  /* ================= SUCCESS ================= */
   if (success) {
-    return <SuccessScreen tracking={success.tracking} fee={success.fee} />;
+    return (
+      <SuccessScreen
+        tracking={success.tracking}
+        fee={success.fee}
+        paymentMethod={success.paymentMethod}
+      />
+    );
   }
 
+  /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4 sm:py-8">
+    <div className="min-h-screen bg-gray-50 py-6 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
           <button
             onClick={() => window.history.back()}
-            className="p-2 hover:bg-gray-200 rounded-lg transition"
+            className="p-2 hover:bg-gray-200 rounded-lg"
           >
-            <FaArrowLeft className="text-xl text-gray-700" />
+            <FaArrowLeft />
           </button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Tạo đơn vận chuyển
-            </h1>
-            <p className="text-gray-500 text-sm mt-1">
-              {form.serviceName ||
-                SHIPMENT_TYPES.find((s) => s.id === form.shipmentType)?.label}
-            </p>
-          </div>
+          <h1 className="text-2xl font-bold">Tạo đơn vận chuyển</h1>
         </div>
 
         <Stepper steps={STEPS} currentStep={step} />
 
-        <div className="bg-white rounded-2xl shadow border p-6 sm:p-8">
-          {profileLoading && <p>Đang tải thông tin người gửi…</p>}
+        <div className="bg-white rounded-xl shadow p-6">
+          {profileLoading && <p>Đang tải thông tin…</p>}
           {profileError && <p className="text-red-600">{profileError}</p>}
 
           {errors.submit && (
-            <div className="mb-6 p-4 bg-red-50 border rounded-lg flex gap-2">
-              <FaExclamationCircle className="text-2xl text-red-600" />
-              <p className="text-red-700 text-sm">{errors.submit}</p>
+            <div className="mb-4 text-red-600 flex gap-2">
+              <FaExclamationCircle />
+              <span>{errors.submit}</span>
             </div>
           )}
 
@@ -308,17 +276,16 @@ const CreateShipmentPage = () => {
               form={form}
               shipmentTypes={SHIPMENT_TYPES}
               paymentMethods={PAYMENT_METHODS}
+              onSelectPayment={(m) =>
+                setForm((p) => ({ ...p, payment: m }))
+              }
             />
           )}
 
-          <div className="flex gap-4 mt-8">
-            <PrevButton
-              onClick={handlePrev}
-              disabled={step === 0 || createMutation.isPending}
-            />
+          <div className="flex gap-4 mt-6">
+            <PrevButton onClick={handlePrev} disabled={step === 0} />
             <NextButton
               onClick={step === 3 ? handleSubmit : handleNext}
-              loading={createMutation.isPending}
               label={step === 3 ? "Xác nhận & tạo đơn" : "Tiếp tục"}
               icon={step === 3 ? FaCheck : undefined}
               fullWidth

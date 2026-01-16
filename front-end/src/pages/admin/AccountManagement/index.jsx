@@ -11,7 +11,6 @@ import Pagination from "../../../components/common/Pagination";
 
 /* ================= CONSTANTS ================= */
 
-// ❌ KHÔNG CÓ USER
 const ROLE_OPTIONS = ["ADMIN", "AGENT"];
 const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
 
@@ -22,20 +21,14 @@ const initialForm = {
   password: "",
   role: "AGENT",
   branch_id: "",
-  is_active: true,
+  status: "ACTIVE",
 };
-
-/* ================= HELPERS ================= */
-
-const toBool = (v) => v === true || v === 1 || v === "1" || v === "ACTIVE";
-const toStatus = (v) => (toBool(v) ? "ACTIVE" : "INACTIVE");
 
 /* ================= PAGE ================= */
 
 const AdminAccountsPage = () => {
   // ================= API =================
   const { useGetAll, useCreate, useUpdate, useDelete } = useCRUDApi("accounts");
-
   const { useGetAll: useGetBranches } = useCRUDApi("branches");
 
   const {
@@ -58,6 +51,7 @@ const AdminAccountsPage = () => {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [showModal, setShowModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
   const itemsPerPage = 10;
 
   const resetForm = () => {
@@ -67,7 +61,7 @@ const AdminAccountsPage = () => {
     setSuccessMessage("");
   };
 
-  // ================= CRUD HOOK =================
+  // ================= CRUD =================
   const {
     successMessage,
     setSuccessMessage,
@@ -88,7 +82,9 @@ const AdminAccountsPage = () => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox"
+        ? checked ? "ACTIVE" : "INACTIVE"
+        : value,
     }));
   };
 
@@ -105,31 +101,23 @@ const AdminAccountsPage = () => {
       password: "",
       role: account.role || "AGENT",
       branch_id: account.branch_id || "",
-      is_active: toBool(account.status),
+      status: account.status || "ACTIVE",
     });
     setShowModal(true);
   };
 
   // ================= SUBMIT =================
   const handleSubmitAccount = (e) => {
-    // 🔒 CHẶN USER (an toàn kép)
-    if (form.role === "USER") {
-      setDialog({
-        open: true,
-        mode: "error",
-        title: "Không hợp lệ",
-        message: "Không thể tạo tài khoản khách hàng tại đây.",
-      });
-      return;
-    }
-
     const payload = {
       email: form.email,
-      password: form.password || undefined,
       role: form.role,
       branch_id: form.branch_id,
-      status: toStatus(form.is_active),
+      status: form.status,
     };
+
+    if (form.password) {
+      payload.password = form.password;
+    }
 
     handleSubmit(e, editing, payload);
   };
@@ -145,38 +133,23 @@ const AdminAccountsPage = () => {
           acc.role?.toLowerCase().includes(keyword)
         );
       })
-      .filter((acc) => (filterRole === "ALL" ? true : acc.role === filterRole))
-      .filter((acc) => {
-        if (filterStatus === "ALL") return true;
-        return filterStatus === "ACTIVE"
-          ? toBool(acc.status)
-          : !toBool(acc.status);
-      });
+      .filter((acc) =>
+        filterRole === "ALL" ? true : acc.role === filterRole
+      )
+      .filter((acc) =>
+        filterStatus === "ALL" ? true : acc.status === filterStatus
+      );
   }, [accounts, search, filterRole, filterStatus]);
 
   // ================= PAGINATION =================
   const totalPages = Math.ceil(filteredAccounts.length / itemsPerPage);
+
   const paginatedAccounts = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAccounts.slice(startIndex, startIndex + itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredAccounts.slice(start, start + itemsPerPage);
   }, [filteredAccounts, currentPage]);
 
-  const handleSearch = (value) => {
-    setSearch(value);
-    setCurrentPage(1);
-  };
-
-  const handleFilterRole = (value) => {
-    setFilterRole(value);
-    setCurrentPage(1);
-  };
-
-  const handleFilterStatus = (value) => {
-    setFilterStatus(value);
-    setCurrentPage(1);
-  };
-
-  // ================= BADGE CONFIG =================
+  // ================= BADGES =================
   const ROLE_BADGE_CONFIG = {
     ADMIN: { className: "bg-purple-100 text-purple-700" },
     AGENT: { className: "bg-blue-100 text-blue-700" },
@@ -192,24 +165,23 @@ const AdminAccountsPage = () => {
       className: "bg-red-100 text-red-700",
       dotColor: "bg-red-500",
     },
-    DEFAULT: { className: "bg-gray-100 text-gray-700" },
   };
 
   // ================= UI =================
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
           Quản lý tài khoản
         </h1>
 
         <FilterBar
           search={search}
-          setSearch={handleSearch}
+          setSearch={setSearch}
           filterRole={filterRole}
-          setFilterRole={handleFilterRole}
+          setFilterRole={setFilterRole}
           filterStatus={filterStatus}
-          setFilterStatus={handleFilterStatus}
+          setFilterStatus={setFilterStatus}
           roleOptions={ROLE_OPTIONS}
           statusOptions={STATUS_OPTIONS}
           filteredCount={filteredAccounts.length}
@@ -226,9 +198,14 @@ const AdminAccountsPage = () => {
             {
               key: "index",
               title: "STT",
-              render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
+              render: (_, i) =>
+                (currentPage - 1) * itemsPerPage + i + 1,
             },
-            { key: "email", title: "Email" },
+            {
+              key: "email",
+              title: "Email",
+              render: (row) => row.email || "—",
+            },
             {
               key: "role",
               title: "Vai trò",
@@ -240,10 +217,7 @@ const AdminAccountsPage = () => {
               key: "status",
               title: "Trạng thái",
               render: (row) => (
-                <GenericBadge
-                  value={row.status || "ACTIVE"}
-                  config={STATUS_BADGE_CONFIG}
-                />
+                <GenericBadge value={row.status} config={STATUS_BADGE_CONFIG} />
               ),
             },
           ]}
@@ -290,7 +264,7 @@ const AdminAccountsPage = () => {
             })),
           },
           {
-            name: "is_active",
+            name: "status",
             type: "checkbox",
             label: "Kích hoạt",
           },
@@ -303,16 +277,13 @@ const AdminAccountsPage = () => {
         onCancel={resetForm}
       />
 
-      {/* DIALOG */}
       <DynamicDialog
         open={dialog.open}
         mode={dialog.mode}
         title={dialog.title}
         message={dialog.message}
         onClose={() => setDialog({ ...dialog, open: false })}
-        onConfirm={async () => {
-          if (dialog.onConfirm) await dialog.onConfirm();
-        }}
+        onConfirm={dialog.onConfirm}
       />
     </div>
   );

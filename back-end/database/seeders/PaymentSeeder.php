@@ -20,7 +20,7 @@ class PaymentSeeder extends Seeder
 
             $payments[] = [
                 'bill_id'        => $billId,
-                'method'         => ['CASH', 'MOMO', 'VNPAY'][array_rand(['CASH', 'MOMO', 'VNPAY'])],
+                'method'         => ['CASH', 'MOMO', 'PAYPAL'][array_rand(['CASH', 'MOMO', 'PAYPAL'])],
                 'transaction_id' => 'TXN' . rand(100000, 999999),
                 'amount'         => $bill->total_amount,
                 'status'         => ['SUCCESS', 'FAILED'][array_rand(['SUCCESS', 'FAILED'])],

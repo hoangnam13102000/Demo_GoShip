@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\BillController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ShipmentTransferController;
+use App\Http\Controllers\Api\MomoController;
 
 
 
@@ -72,3 +73,11 @@ Route::post(
     '/shipments/transfer',
     [ShipmentTransferController::class, 'transfer']
 );
+
+
+Route::prefix('momo')->group(function () {
+    Route::post('/create',  [MomoController::class, 'create']);
+    Route::get('/return',   [MomoController::class, 'return'])->name('momo.return');
+    Route::post('/confirm', [MomoController::class, 'confirm']);
+    Route::post('/ipn',     [MomoController::class, 'ipn'])->name('momo.ipn');
+});

@@ -15,7 +15,7 @@ import ContactPage from "../pages/client/Contact";
 import ServicesPage from "../pages/client/Services";
 import BlogPage from "../pages/client/Blog";
 import CreateShipmentPage from "../pages/client/CreateShipmentPage";
-
+import MomoResult from "../pages/client/CreateShipmentPage/components/MomoReturn.jsx";
 import NotFound from "../pages/404";
 import ProfilePage from "../pages/client/Profile/index.jsx";
 
@@ -28,7 +28,7 @@ import AdminCustomersPage from "../pages/admin/AdminCustomersPage.jsx";
 import AdminShipmentServicesPage from "../pages/admin/AdminShipmentServicesPage";
 import AdminBranchesPage from "../pages/admin/AdminBranchesPage/index.jsx";
 import AdminBillsPage from "../pages/admin/AdminBillsPage/index.jsx";
-import DashboardReport from "../pages/admin/ReportAdminPage"
+import DashboardReport from "../pages/admin/ReportAdminPage";
 import AdminDeliveriesPage from "../pages/admin/AdminDeliveriesPage/index.jsx";
 
 // ===== AGENT =====
@@ -36,6 +36,7 @@ import AgentDashboard from "../pages/agent/Layout";
 import AgentBillsPage from "../pages/agent/AgentBillsPage/index.jsx";
 import BranchAgentsPage from "../pages/agent/BranchAgentsPage/index.jsx";
 import ReportAgentPage from "../pages/agent/ReportAgentPage/index.jsx";
+import { elements } from "chart.js";
 
 // ================= USER ROUTER =================
 const userRouter = [
@@ -49,8 +50,8 @@ const userRouter = [
   { path: ROUTERS.USER.CREATESHIPMENTPAGE, element: <CreateShipmentPage /> },
   { path: ROUTERS.USER.BLOG, element: <BlogPage /> },
   { path: ROUTERS.USER.PROFILE, element: <ProfilePage /> },
-  { path: ROUTERS.USER.DELIVERIES, element: <AdminDeliveriesPage /> }
-
+  { path: ROUTERS.USER.DELIVERIES, element: <AdminDeliveriesPage /> },
+  { path: ROUTERS.USER.MOMORESULT, element: <MomoResult /> },
 ];
 
 // ================= ADMIN ROUTER =================
@@ -63,8 +64,7 @@ const adminRouter = [
   { path: ROUTERS.ADMIN.BRANCHES, element: <AdminBranchesPage /> },
   { path: ROUTERS.ADMIN.BILL, element: <AdminBillsPage /> },
   { path: ROUTERS.ADMIN.REPORT, element: <DashboardReport /> },
-  {path: ROUTERS.ADMIN.DELIVERIES, element: <AdminDeliveriesPage /> },
- 
+  { path: ROUTERS.ADMIN.DELIVERIES, element: <AdminDeliveriesPage /> },
 ];
 
 // ================= AGENT ROUTER =================
@@ -72,10 +72,10 @@ const agentRouter = [
   { path: ROUTERS.AGENTS.DASHBOARD, element: <Dashboard /> },
   { path: ROUTERS.AGENTS.CUSTOMERS, element: <AdminCustomersPage /> },
   { path: ROUTERS.AGENTS.DELIVERIES, element: <AdminDeliveriesPage /> },
-  { path: ROUTERS.AGENTS.BILL, element: <AgentBillsPage/>},
-  { path: ROUTERS.AGENTS.AGENTS, element: <BranchAgentsPage/>},
-  { path: ROUTERS.AGENTS.REPORT, element: <ReportAgentPage/>},
-  { path: ROUTERS.AGENTS.PROFILE, element: <ProfilePage/>}
+  { path: ROUTERS.AGENTS.BILL, element: <AgentBillsPage /> },
+  { path: ROUTERS.AGENTS.AGENTS, element: <BranchAgentsPage /> },
+  { path: ROUTERS.AGENTS.REPORT, element: <ReportAgentPage /> },
+  { path: ROUTERS.AGENTS.PROFILE, element: <ProfilePage /> },
 ];
 
 // ================= RENDER USER =================
@@ -113,13 +113,7 @@ const RenderUserRouter = () => (
         }
 
         // Còn lại public
-        return (
-          <Route
-            key={index}
-            path={item.path}
-            element={item.element}
-          />
-        );
+        return <Route key={index} path={item.path} element={item.element} />;
       })}
 
       <Route path="*" element={<NotFound />} />
@@ -137,9 +131,7 @@ const RenderAgentRouter = () => (
           path={item.path}
           element={
             <ProtectedRoute>
-              <RoleRoute allowRoles={["AGENT"]}>
-                {item.element}
-              </RoleRoute>
+              <RoleRoute allowRoles={["AGENT"]}>{item.element}</RoleRoute>
             </ProtectedRoute>
           }
         />
@@ -159,9 +151,7 @@ const RenderAdminRouter = () => (
           path={item.path}
           element={
             <ProtectedRoute>
-              <RoleRoute allowRoles={["ADMIN"]}>
-                {item.element}
-              </RoleRoute>
+              <RoleRoute allowRoles={["ADMIN"]}>{item.element}</RoleRoute>
             </ProtectedRoute>
           }
         />

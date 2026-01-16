@@ -21,20 +21,13 @@ const initialForm = {
   weight_fee: "",
   tax: "",
   total_amount: "",
-  is_paid: false,
 };
-
-/* ================= HELPERS ================= */
-
-const toBool = (v) => v === true || v === 1 || v === "1" || v === "PAID";
-const toStatus = (v) => (toBool(v) ? "PAID" : "UNPAID");
 
 /* ================= PAGE ================= */
 
 const AdminBillsPage = () => {
   /* ================= API ================= */
-  const { useGetAll, useCreate, useUpdate, useDelete } =
-    useCRUDApi("bills");
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCRUDApi("bills");
 
   const {
     data: bills = [],
@@ -79,12 +72,10 @@ const AdminBillsPage = () => {
   });
 
   /* ================= HANDLERS ================= */
+
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleOpenCreate = () => {
@@ -96,31 +87,34 @@ const AdminBillsPage = () => {
   const handleEdit = (bill) => {
     setEditing(bill);
     setForm({
-      shipment_id: bill.shipment_id || "",
+      shipment_id: bill.shipment_id ?? "",
       base_amount: bill.base_amount ?? "",
       weight_fee: bill.weight_fee ?? "",
       tax: bill.tax ?? "",
       total_amount: bill.total_amount ?? "",
-      is_paid: toBool(bill.status || "UNPAID"),
     });
     setShowModal(true);
   };
 
-  /* ================= SUBMIT (QUAN TRỌNG) ================= */
+  /* ================= SUBMIT ================= */
+
   const handleSubmitBill = (e) => {
     const payload = {
-      shipment_id: Number(form.shipment_id),
       base_amount: Number(form.base_amount),
-      weight_fee: Number(form.weight_fee),
-      tax: Number(form.tax),
-      total_amount: Number(form.total_amount),
-      status: toStatus(form.is_paid),
+      weight_fee: Number(form.weight_fee || 0),
+      tax: Number(form.tax || 0),
     };
+
+    // chỉ gửi shipment_id khi TẠO MỚI
+    if (!editing) {
+      payload.shipment_id = Number(form.shipment_id);
+    }
 
     handleSubmit(e, editing, payload);
   };
 
   /* ================= FILTER ================= */
+
   const filteredBills = useMemo(() => {
     return bills
       .filter((b) => {
@@ -139,13 +133,14 @@ const AdminBillsPage = () => {
   }, [bills, search, filterStatus]);
 
   /* ================= PAGINATION ================= */
+
   const totalPages = Math.ceil(filteredBills.length / itemsPerPage);
+
   const paginatedBills = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredBills.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredBills, currentPage]);
 
-  // Reset về trang 1 khi search/filter thay đổi
   const handleSearch = (value) => {
     setSearch(value);
     setCurrentPage(1);
@@ -156,7 +151,8 @@ const AdminBillsPage = () => {
     setCurrentPage(1);
   };
 
-  /* ================= BADGE CONFIG ================= */
+  /* ================= BADGE ================= */
+
   const STATUS_BADGE_CONFIG = {
     PAID: {
       className: "bg-green-100 text-green-700",
@@ -172,6 +168,7 @@ const AdminBillsPage = () => {
   };
 
   /* ================= UI ================= */
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -182,7 +179,6 @@ const AdminBillsPage = () => {
           Quản lý toàn bộ hóa đơn vận chuyển
         </p>
 
-        {/* FILTER BAR */}
         <FilterBar
           search={search}
           setSearch={handleSearch}
@@ -203,7 +199,8 @@ const AdminBillsPage = () => {
             {
               key: "index",
               title: "STT",
-              render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
+              render: (_, i) =>
+                (currentPage - 1) * itemsPerPage + i + 1,
             },
             {
               key: "id",
@@ -217,9 +214,7 @@ const AdminBillsPage = () => {
             {
               key: "shipment_id",
               title: "Mã vận đơn",
-              render: (row) => (
-                <span className="text-gray-700">#{row.shipment_id}</span>
-              ),
+              render: (row) => <span>#{row.shipment_id}</span>,
             },
             {
               key: "base_amount",
@@ -243,7 +238,7 @@ const AdminBillsPage = () => {
               key: "total_amount",
               title: "Tổng tiền",
               render: (row) => (
-                <span className="font-semibold text-lg text-blue-600">
+                <span className="font-semibold text-blue-600">
                   {Number(row.total_amount).toLocaleString("vi-VN")}đ
                 </span>
               ),
@@ -289,40 +284,29 @@ const AdminBillsPage = () => {
             type: "number",
             label: "Mã vận đơn",
             required: true,
-            readOnly: editing ? true : false,
+            readOnly: !!editing,
           },
           {
             name: "base_amount",
             type: "number",
             label: "Giá cơ bản (đ)",
             required: true,
-            step: "0.01",
           },
           {
             name: "weight_fee",
             type: "number",
             label: "Phí trọng lượng (đ)",
-            required: false,
-            step: "0.01",
           },
           {
             name: "tax",
             type: "number",
             label: "Thuế (đ)",
-            required: false,
-            step: "0.01",
           },
           {
             name: "total_amount",
             type: "number",
             label: "Tổng tiền (đ)",
-            required: true,
-            step: "0.01",
-          },
-          {
-            name: "is_paid",
-            type: "checkbox",
-            label: "Đã thanh toán",
+            readOnly: true,
           },
         ]}
         editing={editing}
@@ -335,18 +319,13 @@ const AdminBillsPage = () => {
         onCancel={resetForm}
       />
 
-      {/* DIALOG */}
       <DynamicDialog
         open={dialog.open}
         mode={dialog.mode}
         title={dialog.title}
         message={dialog.message}
         onClose={() => setDialog({ ...dialog, open: false })}
-        onConfirm={async () => {
-          if (dialog.onConfirm) {
-            await dialog.onConfirm();
-          }
-        }}
+        onConfirm={dialog.onConfirm}
       />
     </div>
   );

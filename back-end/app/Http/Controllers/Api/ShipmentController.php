@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\BranchResolver;
+use App\Services\ShipmentTransferService;
 use App\Models\Shipment;
 use App\Models\Branch;
+use App\Models\Bill;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -26,11 +29,9 @@ class ShipmentController extends Controller
     public function index()
     {
         return response()->json(
-            Shipment::with([
-                'customer',
-                'agent',
-                'currentStatus'
-            ])->orderBy('created_at', 'desc')->get()
+            Shipment::with(['customer', 'agent', 'currentStatus'])
+                ->orderByDesc('created_at')
+                ->get()
         );
     }
 
@@ -61,30 +62,26 @@ class ShipmentController extends Controller
             'charge' => 'required|numeric|min:0',
 
             'expected_delivery_date' => 'nullable|date',
+            'payment_method' => 'nullable|in:CASH,MOMO',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        $paymentMethod = $validated['payment_method'] ?? null;
+        unset($validated['payment_method']);
+
+        return DB::transaction(function () use ($validated, $paymentMethod) {
 
             /* =======================
-             * AUTO RESOLVE BRANCH
+             * RESOLVE BRANCH
              * ======================= */
             if (empty($validated['current_branch_id'])) {
-
-
                 $branch = $this->branchResolver
-                    ->resolveByCity($validated['sender_city'] ?? null);
-
-                
-                if (!$branch) {
-                    $branch = Branch::where('city', $validated['sender_city'])
+                    ->resolveByCity($validated['sender_city'] ?? null)
+                    ?? Branch::where('city', $validated['sender_city'])
                         ->where('status', 'ACTIVE')
                         ->first();
-                }
 
                 if (!$branch) {
-                    return response()->json([
-                        'message' => 'Chưa có chi nhánh phục vụ khu vực gửi'
-                    ], 422);
+                    abort(422, 'Chưa có chi nhánh phục vụ khu vực gửi');
                 }
 
                 $validated['current_branch_id'] = $branch->id;
@@ -111,7 +108,39 @@ class ShipmentController extends Controller
                 'updated_at'     => now(),
             ]);
 
-            return response()->json($shipment, 201);
+            /* =======================
+             * CREATE BILL (FIX base_amount)
+             * ======================= */
+            $bill = Bill::create([
+                'shipment_id'  => $shipment->id,
+                'base_amount'  => $shipment->charge, // ✅ FIX LỖI 1364
+                'total_amount' => $shipment->charge,
+                'status'       => $paymentMethod === 'CASH' ? 'PAID' : 'UNPAID',
+            ]);
+
+            /* =======================
+             * CASH PAYMENT
+             * ======================= */
+            if ($paymentMethod === 'CASH') {
+                Payment::create([
+                    'bill_id' => $bill->id,
+                    'method'  => 'CASH',
+                    'amount'  => $shipment->charge,
+                    'status'  => 'SUCCESS',
+                    'paid_at' => now(),
+                ]);
+            }
+
+            /* =======================
+             * RESPONSE
+             * ======================= */
+            return response()->json([
+                'shipment_id'     => $shipment->id,
+                'tracking_number' => $shipment->tracking_number,
+                'bill_id'         => $bill->id,
+                'charge'          => $shipment->charge,
+                'payment_method'  => $paymentMethod,
+            ], 201);
         });
     }
 
@@ -120,131 +149,70 @@ class ShipmentController extends Controller
      * ======================= */
     public function show($id)
     {
-        $shipment = Shipment::with(['customer', 'agent'])->findOrFail($id);
-        return response()->json($shipment);
+        return response()->json(
+            Shipment::with(['customer', 'agent', 'currentStatus'])
+                ->findOrFail($id)
+        );
     }
 
     /* =======================
      * UPDATE SHIPMENT
      * ======================= */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, ShipmentTransferService $service)
     {
         $shipment = Shipment::findOrFail($id);
 
         $validated = $request->validate([
-            'agent_id' => 'sometimes|nullable|exists:agents,id',
             'current_branch_id' => 'sometimes|exists:branches,id',
             'current_status_id' => 'sometimes|exists:shipment_statuses,id',
-
-            'sender_name' => 'sometimes|string|max:255',
-            'sender_address' => 'sometimes|string|max:255',
-            'sender_phone' => 'sometimes|nullable|string|max:20',
-            'sender_city' => 'sometimes|nullable|string|max:255',
-
-            'receiver_name' => 'sometimes|string|max:255',
-            'receiver_address' => 'sometimes|string|max:255',
-            'receiver_phone' => 'sometimes|nullable|string|max:20',
-            'receiver_city' => 'sometimes|nullable|string|max:255',
-
-            'shipment_service_code' => 'sometimes|exists:shipment_services,code',
-            'weight' => 'sometimes|numeric|min:0.1',
-            'charge' => 'sometimes|numeric|min:0',
-
-            'expected_delivery_date' => 'sometimes|nullable|date',
         ]);
 
-        if (empty($validated)) {
-            return response()->json($shipment);
-        }
+        return DB::transaction(function () use ($shipment, $validated, $service) {
 
-        return DB::transaction(function () use ($shipment, $validated) {
-
-            $oldBranchId = $shipment->current_branch_id;
-            $oldStatusId = $shipment->current_status_id;
+            if (
+                isset($validated['current_branch_id']) &&
+                $validated['current_branch_id'] != $shipment->current_branch_id
+            ) {
+                $service->transfer(
+                    $shipment,
+                    $validated['current_branch_id'],
+                    $validated['current_status_id'] ?? $shipment->current_status_id
+                );
+            }
 
             $shipment->update($validated);
 
-            $hasBranchChange = isset($validated['current_branch_id'])
-                && $validated['current_branch_id'] != $oldBranchId;
-
-            $hasStatusChange = isset($validated['current_status_id'])
-                && $validated['current_status_id'] != $oldStatusId;
-
-            if ($hasBranchChange || $hasStatusChange) {
-
-                /* ========= OUT ========= */
-                if ($hasBranchChange && $oldBranchId) {
-                    DB::table('trackings')->insert([
-                        'shipment_id'    => $shipment->id,
-                        'from_branch_id' => $oldBranchId,
-                        'to_branch_id'   => $validated['current_branch_id'],
-                        'status_id'      => $oldStatusId,
-                        'updated_by'     => Auth::id(),
-                        'direction_flag' => 'OUT',
-                        'note'           => 'Xuất hàng khỏi chi nhánh',
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
-                    ]);
-                }
-
-                /* ========= IN ========= */
-                DB::table('trackings')->insert([
-                    'shipment_id'    => $shipment->id,
-                    'from_branch_id' => $hasBranchChange ? $oldBranchId : null,
-                    'to_branch_id'   => $hasBranchChange
-                        ? $validated['current_branch_id']
-                        : $shipment->current_branch_id,
-                    'status_id'      => $hasStatusChange
-                        ? $validated['current_status_id']
-                        : $shipment->current_status_id,
-                    'updated_by'     => Auth::id(),
-                    'direction_flag' => 'IN',
-                    'note'           => $hasStatusChange
-                        ? 'Cập nhật trạng thái'
-                        : 'Cập nhật chi nhánh',
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ]);
-            }
-
-            return response()->json($shipment);
+            return response()->json($shipment->fresh());
         });
     }
 
     /* =======================
-     * DELETE
+     * TRACKING
      * ======================= */
-    public function destroy($id)
-    {
-        Shipment::findOrFail($id)->delete();
-        return response()->json(['message' => 'Shipment deleted successfully']);
-    }
-
-    /* =======================
-     * TRACKING PUBLIC API
-     * ======================= */
-    public function track($tracking_number)
+    public function track($trackingNumber)
     {
         $shipment = Shipment::with([
             'currentStatus',
+            'trackingHistory' => fn ($q) =>
+                $q->where('direction_flag', 'IN')->orderBy('created_at'),
             'trackingHistory.status',
-            'trackingHistory.branch'
-        ])->where('tracking_number', $tracking_number)->first();
+            'trackingHistory.toBranch',
+        ])->where('tracking_number', $trackingNumber)->first();
 
         if (!$shipment) {
             return response()->json(['message' => 'Vận đơn không tồn tại'], 404);
         }
 
+        $lastTracking = $shipment->trackingHistory->last();
+
         return response()->json([
             'tracking_number' => $shipment->tracking_number,
             'status' => $shipment->currentStatus->name ?? 'Chưa cập nhật',
-            'current_location' => optional(
-                $shipment->trackingHistory->last()?->branch
-            )->name ?? 'Chưa xác định',
+            'current_location' => $lastTracking?->toBranch?->name ?? 'Chưa xác định',
             'estimated_delivery' => $shipment->expected_delivery_date,
             'history' => $shipment->trackingHistory->map(fn ($t) => [
                 'status' => $t->status->name ?? '',
-                'location' => $t->branch?->name ?? 'Không xác định',
+                'location' => $t->toBranch?->name ?? '',
                 'time' => $t->created_at->format('Y-m-d H:i'),
             ]),
         ]);
@@ -261,29 +229,16 @@ class ShipmentController extends Controller
             return response()->json(['message' => 'customer_id is required'], 400);
         }
 
-        $shipments = Shipment::with([
-            'trackingHistory.status',
-            'trackingHistory.branch',
-            'service',
-            'currentStatus'
-        ])
-            ->where('customer_id', $customerId)
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn ($shipment) => [
-                'id' => $shipment->id,
-                'tracking_number' => $shipment->tracking_number,
-                'status' => $shipment->currentStatus->name ?? 'Chưa cập nhật',
-                'service' => $shipment->service->name ?? '',
-                'created_at' => $shipment->created_at->format('Y-m-d H:i'),
-                'estimated_delivery' => $shipment->expected_delivery_date,
-                'history' => $shipment->trackingHistory->map(fn ($t) => [
-                    'status' => $t->status->name,
-                    'location' => $t->branch?->name ?? 'Không xác định',
-                    'time' => $t->created_at->format('Y-m-d H:i'),
-                ]),
-            ]);
-
-        return response()->json($shipments);
+        return response()->json(
+            Shipment::with([
+                'trackingHistory.status',
+                'trackingHistory.toBranch',
+                'service',
+                'currentStatus'
+            ])
+                ->where('customer_id', $customerId)
+                ->orderByDesc('created_at')
+                ->get()
+        );
     }
 }

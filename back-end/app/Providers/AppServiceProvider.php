@@ -1,10 +1,10 @@
 <?php
 
 namespace App\Providers;
-use App\Models\Tracking;
-use App\Observers\TrackingObserver;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\Shipment;
+use App\Observers\ShipmentObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Tracking::observe(TrackingObserver::class);
+        Shipment::observe(ShipmentObserver::class);
     }
 }

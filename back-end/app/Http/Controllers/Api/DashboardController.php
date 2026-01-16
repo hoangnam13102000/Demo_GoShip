@@ -17,33 +17,64 @@ class DashboardController extends Controller
     public function summary(\Illuminate\Http\Request $request)
     {
         $start = $request->query('start_date'); // YYYY-MM-DD
-        $end = $request->query('end_date');     // YYYY-MM-DD
+        $end   = $request->query('end_date');   // YYYY-MM-DD
 
-        $shipments = DB::table('shipments');
-        $bills = DB::table('bills')->where('status', 'PAID');
+        // =========================
+        // SHIPMENTS QUERY
+        // =========================
+        $shipmentsQuery = DB::table('shipments');
 
         if ($start && $end) {
-            $shipments->whereBetween('created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
-            $bills->whereBetween('created_at', [$start . ' 00:00:00', $end . ' 23:59:59']);
+            $shipmentsQuery->whereBetween(
+                'created_at',
+                [$start . ' 00:00:00', $end . ' 23:59:59']
+            );
         }
 
-        $totalOrders = $shipments->count();
-        $totalCustomers = DB::table('customers')
-            ->whereIn('id', $shipments->pluck('customer_id'))
-            ->count();
-        $inTransit = $shipments
+        $totalOrders = (clone $shipmentsQuery)->count();
+
+        $totalCustomers = DB::table('shipments')
+            ->when($start && $end, function ($q) use ($start, $end) {
+                $q->whereBetween(
+                    'created_at',
+                    [$start . ' 00:00:00', $end . ' 23:59:59']
+                );
+            })
+            ->distinct('customer_id')
+            ->count('customer_id');
+
+        $inTransit = (clone $shipmentsQuery)
             ->where('current_status_id', function ($q) {
-                $q->select('id')->from('shipment_statuses')->where('code', 'IN_TRANSIT')->limit(1);
-            })->count();
-        $totalRevenue = $bills->sum('total_amount');
+                $q->select('id')
+                    ->from('shipment_statuses')
+                    ->where('code', 'IN_TRANSIT')
+                    ->limit(1);
+            })
+            ->count();
+
+        // =========================
+        // REVENUE QUERY (PAID ONLY)
+        // =========================
+        $billsQuery = DB::table('bills')
+            ->where('status', 'PAID');
+
+        if ($start && $end) {
+            $billsQuery->whereBetween(
+                'created_at',
+                [$start . ' 00:00:00', $end . ' 23:59:59']
+            );
+        }
+
+        $totalRevenue = (float) $billsQuery->sum('total_amount');
 
         return response()->json([
-            'totalOrders' => $totalOrders,
+            'totalOrders'    => $totalOrders,
             'totalCustomers' => $totalCustomers,
-            'inTransit' => $inTransit,
-            'totalRevenue' => $totalRevenue,
+            'inTransit'      => $inTransit,
+            'totalRevenue'   => $totalRevenue,
         ]);
     }
+
 
     // =========================
     // 2. Doanh thu theo tháng

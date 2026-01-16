@@ -6,6 +6,7 @@ use App\Models\Shipment;
 use App\Models\Tracking;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use DomainException;
 
 class ShipmentTransferService
 {
@@ -14,8 +15,8 @@ class ShipmentTransferService
         int $toBranchId,
         int $statusId,
         ?string $note = null
-    ) {
-        return DB::transaction(function () use (
+    ): void {
+        DB::transaction(function () use (
             $shipment,
             $toBranchId,
             $statusId,
@@ -24,29 +25,62 @@ class ShipmentTransferService
 
             $fromBranchId = $shipment->current_branch_id;
 
-            // 1️⃣ OUT
+            /* =========================
+             * GUARD RULES (DDD)
+             * ========================= */
+            if ($fromBranchId === $toBranchId) {
+                throw new DomainException(
+                    'Không thể chuyển đến cùng chi nhánh'
+                );
+            }
+
+            /* =========================
+             * PREVENT DUPLICATE TRANSFER
+             * ========================= */
+            $alreadyTransferred = Tracking::where([
+                'shipment_id' => $shipment->id,
+                'direction_flag' => 'IN',
+                'to_branch_id' => $toBranchId,
+                'status_id' => $statusId,
+            ])->exists();
+
+            if ($alreadyTransferred) {
+                return;
+            }
+
+            /* =========================
+             * OUT TRACKING
+             * ========================= */
             Tracking::create([
                 'shipment_id'    => $shipment->id,
                 'status_id'      => $statusId,
                 'from_branch_id' => $fromBranchId,
-                'to_branch_id'   => $toBranchId,
+                'to_branch_id'   => null,
                 'direction_flag' => 'OUT',
-                'note'           => $note ?? 'Xuất kho chuyển chi nhánh',
+                'note'           => $note ?? 'Xuất kho',
                 'updated_by'     => Auth::id(),
             ]);
 
-            // 2️⃣ IN
+            /* =========================
+             * IN TRACKING
+             * ========================= */
             Tracking::create([
                 'shipment_id'    => $shipment->id,
                 'status_id'      => $statusId,
                 'from_branch_id' => $fromBranchId,
                 'to_branch_id'   => $toBranchId,
                 'direction_flag' => 'IN',
-                'note'           => 'Nhập kho chi nhánh mới',
+                'note'           => $note ?? 'Nhập kho',
                 'updated_by'     => Auth::id(),
             ]);
 
-            return true;
+            /* =========================
+             * UPDATE AGGREGATE ROOT
+             * ========================= */
+            $shipment->update([
+                'current_branch_id' => $toBranchId,
+                'current_status_id' => $statusId,
+            ]);
         });
     }
 }
