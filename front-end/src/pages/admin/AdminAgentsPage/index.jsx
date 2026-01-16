@@ -8,48 +8,65 @@ import CreateButton from "../../../components/common/buttons/CreateButton";
 import GenericBadge from "../../../components/UI/GenericBadge";
 import DynamicDialog from "../../../components/UI/DynamicDialog";
 import Pagination from "../../../components/common/Pagination";
+import PermissionGuard from "../../../components/auth/PermissionGuard";
+import RoleBasedContent from "../../../components/auth/RoleBasedContent";
+import { useCurrentUserWithAgent } from "../../../utils/auth/useCurrentUser"; 
 
 /* ================= CONSTANTS ================= */
-
 const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
+const ROLE_OPTIONS = ["AGENT", "USER"];
 
 /* ================= INITIAL FORM ================= */
-
 const initialForm = {
-  account_id: "",
-  branch_id: "",
+  full_name: "",
+  email: "",
   phone: "",
+  address: "",
+  password: "",
+  confirm_password: "",
+  role: "AGENT",
   is_active: true,
 };
 
 /* ================= HELPERS ================= */
-
 const toBool = (v) => v === true || v === 1 || v === "1" || v === "ACTIVE";
-const toBit = (v) => (toBool(v) ? 1 : 0);
 const toStatus = (v) => (toBool(v) ? "ACTIVE" : "INACTIVE");
 
 /* ================= PAGE ================= */
-
 const AdminAgentsPage = () => {
-  // ================= API =================
-  const { useGetAll, useCreate, useUpdate, useDelete } =
-    useCRUDApi("agents");
+  /* ================= USER INFO - ================= */
+  const { 
+    agent,
+    branchId,
+    branchName,
+    isLoading: loadingUser,
+    isAdmin,
+    isAgent,
+    hasBranch
+  } = useCurrentUserWithAgent(); 
 
-  const {
-    data: agents = [],
-    isLoading,
-    isError,
-  } = useGetAll({ staleTime: 1000 * 30 });
+  /* ================= API ================= */
+  const { useGetAll, useCreate, useUpdate, useDelete } = useCRUDApi("agents");
+
+  const { data: agents = [], isLoading, isError } = useGetAll({ 
+    staleTime: 30000,
+    select: (data) => {
+      if (isAdmin) return data;
+      if (!branchId) return [];
+      return data.filter(agent => agent.branch_id == branchId);
+    }
+  });
 
   const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();
 
-  // ================= STATE =================
+  /* ================= STATE ================= */
   const [form, setForm] = useState(initialForm);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL");
+  const [filterRole, setFilterRole] = useState("ALL");
   const [showModal, setShowModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -61,7 +78,7 @@ const AdminAgentsPage = () => {
     setSuccessMessage("");
   };
 
-  // ================= CRUD HOOK =================
+  /* ================= CRUD ================= */
   const {
     successMessage,
     setSuccessMessage,
@@ -74,10 +91,10 @@ const AdminAgentsPage = () => {
     updateMutation,
     deleteMutation,
     resetForm,
-    entityName: "agent",
+    entityName: "nhân viên",
   });
 
-  // ================= HANDLERS =================
+  /* ================= HANDLERS ================= */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -87,7 +104,10 @@ const AdminAgentsPage = () => {
   };
 
   const handleOpenCreate = () => {
-    setForm(initialForm);
+    setForm({
+      ...initialForm,
+      branch_id: branchId
+    });
     setEditing(null);
     setShowModal(true);
   };
@@ -95,54 +115,92 @@ const AdminAgentsPage = () => {
   const handleEdit = (agent) => {
     setEditing(agent);
     setForm({
-      account_id: agent.account_id || "",
-      branch_id: agent.branch_id || "",
+      full_name: agent.full_name || "",
+      email: agent.account?.email || "",
       phone: agent.phone || "",
+      address: agent.address || "",
+      branch_id: agent.branch_id || branchId,
+      role: agent.account?.role || "AGENT",
       is_active: toBool(agent.status || "ACTIVE"),
+      password: "",
+      confirm_password: "",
     });
     setShowModal(true);
   };
 
-  // ================= SUBMIT (QUAN TRỌNG) =================
   const handleSubmitAgent = (e) => {
+    e.preventDefault();
+    
+    if (!editing && (!form.password || form.password.length < 6)) {
+      setDialog({
+        open: true,
+        mode: "error",
+        title: "Lỗi",
+        message: "Mật khẩu phải có ít nhất 6 ký tự",
+      });
+      return;
+    }
+
+    if ((!editing || form.password) && form.password !== form.confirm_password) {
+      setDialog({
+        open: true,
+        mode: "error",
+        title: "Lỗi",
+        message: "Mật khẩu xác nhận không khớp",
+      });
+      return;
+    }
+
     const payload = {
-      account_id: form.account_id,
-      branch_id: form.branch_id,
+      full_name: form.full_name,
+      email: form.email,
       phone: form.phone,
+      address: form.address,
+      branch_id: branchId,
       status: toStatus(form.is_active),
+      role: form.role,
+      ...(form.password && { password: form.password }),
     };
 
     handleSubmit(e, editing, payload);
   };
 
-  // ================= FILTER =================
+  /* ================= FILTER ================= */
   const filteredAgents = useMemo(() => {
     return agents
       .filter((agent) => {
         if (!search.trim()) return true;
         const keyword = search.toLowerCase();
-        return (
-          String(agent.account_id).includes(keyword) ||
-          String(agent.branch_id).includes(keyword) ||
-          agent.phone?.toLowerCase().includes(keyword)
-        );
+        const searchString = [
+          agent.full_name,
+          agent.phone,
+          agent.account?.email,
+          agent.branch?.name
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return searchString.includes(keyword);
       })
       .filter((agent) => {
         if (filterStatus === "ALL") return true;
         return filterStatus === "ACTIVE"
           ? toBool(agent.status)
           : !toBool(agent.status);
+      })
+      .filter((agent) => {
+        if (filterRole === "ALL") return true;
+        return agent.account?.role === filterRole;
       });
-  }, [agents, search, filterStatus]);
+  }, [agents, search, filterStatus, filterRole]);
 
-  // ================= PAGINATION =================
+  /* ================= PAGINATION ================= */
   const totalPages = Math.ceil(filteredAgents.length / itemsPerPage);
   const paginatedAgents = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredAgents.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredAgents, currentPage]);
 
-  // Reset về trang 1 khi search/filter thay đổi
   const handleSearch = (value) => {
     setSearch(value);
     setCurrentPage(1);
@@ -153,7 +211,12 @@ const AdminAgentsPage = () => {
     setCurrentPage(1);
   };
 
-  // ================= BADGE CONFIG =================
+  const handleFilterRole = (value) => {
+    setFilterRole(value);
+    setCurrentPage(1);
+  };
+
+  /* ================= BADGE CONFIG ================= */
   const STATUS_BADGE_CONFIG = {
     ACTIVE: {
       className: "bg-green-100 text-green-700",
@@ -163,144 +226,283 @@ const AdminAgentsPage = () => {
       className: "bg-red-100 text-red-700",
       dotColor: "bg-red-500",
     },
-    DEFAULT: {
+  };
+
+  const ROLE_BADGE_CONFIG = {
+    AGENT: {
+      className: "bg-blue-100 text-blue-700",
+      dotColor: "bg-blue-500",
+    },
+    USER: {
       className: "bg-gray-100 text-gray-700",
+      dotColor: "bg-gray-500",
     },
   };
 
-  // ================= UI =================
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Quản lý Agent
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Quản lý thông tin Agent theo chi nhánh
-        </p>
+  /* ================= FORM FIELDS ================= */
+  const getFormFields = () => [
+    {
+      name: "full_name",
+      type: "text",
+      label: "Họ tên",
+      required: true,
+    },
+    {
+      name: "email",
+      type: "email",
+      label: "Email",
+      required: true,
+      readOnly: !!editing,
+    },
+    {
+      name: "phone",
+      type: "text",
+      label: "Số điện thoại",
+      required: false,
+    },
+    {
+      name: "address",
+      type: "text",
+      label: "Địa chỉ",
+      required: false,
+    },
+    {
+      name: "role",
+      type: "select",
+      label: "Vai trò",
+      required: true,
+      options: ROLE_OPTIONS.map(role => ({
+        value: role,
+        label: role === 'AGENT' ? 'Nhân viên' : 'Người dùng'
+      }))
+    },
+    {
+      name: "password",
+      type: "password",
+      label: editing ? "Mật khẩu mới (để trống nếu không đổi)" : "Mật khẩu",
+      required: !editing,
+    },
+    {
+      name: "confirm_password",
+      type: "password",
+      label: "Xác nhận mật khẩu",
+      required: !editing,
+    },
+    {
+      name: "is_active",
+      type: "checkbox",
+      label: "Kích hoạt",
+    }
+  ];
 
-        {/* FILTER BAR */}
-        <FilterBar
-          search={search}
-          setSearch={handleSearch}
-          filterStatus={filterStatus}
-          setFilterStatus={handleFilterStatus}
-          statusOptions={STATUS_OPTIONS}
-          filteredCount={filteredAgents.length}
-          totalCount={agents.length}
-        />
-
-        <DynamicTable
-          data={paginatedAgents}
-          isLoading={isLoading}
-          isError={isError}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          columns={[
-            {
-              key: "index",
-              title: "STT",
-              render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
-            },
-            {
-              key: "account_id",
-              title: "Account ID",
-              render: (row) => row.account_id,
-            },
-            {
-              key: "branch_id",
-              title: "Chi nhánh",
-              render: (row) => row.branch_id,
-            },
-            {
-              key: "phone",
-              title: "SĐT",
-              render: (row) => row.phone || "-",
-            },
-            {
-              key: "status",
-              title: "Trạng thái",
-              render: (row) => (
-                <GenericBadge
-                  value={row.status || "ACTIVE"}
-                  config={STATUS_BADGE_CONFIG}
-                />
-              ),
-            },
-            {
-              key: "created_at",
-              title: "Ngày tạo",
-              render: (row) =>
-                row.created_at
-                  ? new Date(row.created_at).toLocaleDateString("vi-VN")
-                  : "-",
-            },
-          ]}
-        />
-
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-
-        <CreateButton label="Thêm Agent" onClick={handleOpenCreate} />
+  /* ================= LOADING STATE ================= */
+  if (loadingUser || (isAgent && !agent && !isLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải thông tin...</p>
+        </div>
       </div>
+    );
+  }
 
-      {/* FORM */}
-      <DynamicForm
-        visible={showModal}
-        title={editing ? "Chỉnh sửa Agent" : "Tạo Agent mới"}
-        form={form}
-        fields={[
-          {
-            name: "account_id",
-            type: "number",
-            label: "Account ID",
-            required: true,
-          },
-          {
-            name: "branch_id",
-            type: "number",
-            label: "Chi nhánh",
-            required: true,
-          },
-          {
-            name: "phone",
-            type: "text",
-            label: "Số điện thoại",
-            required: false,
-          },
-          {
-            name: "is_active",
-            type: "checkbox",
-            label: "Kích hoạt",
-          },
-        ]}
-        editing={editing}
-        successMessage={successMessage}
-        isSubmitting={
-          createMutation.isPending || updateMutation.isPending
-        }
-        onChange={handleChange}
-        onSubmit={handleSubmitAgent}
-        onCancel={resetForm}
-      />
-
-      {/* DIALOG */}
-      <DynamicDialog
-        open={dialog.open}
-        mode={dialog.mode}
-        title={dialog.title}
-        message={dialog.message}
-        onClose={() => setDialog({ ...dialog, open: false })}
-        onConfirm={async () => {
-          if (dialog.onConfirm) {
-            await dialog.onConfirm();
-          }
-        }}
-      />
+  /* ================= CUSTOM COMPONENT ================= */
+  const NoBranchComponent = (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="text-center p-8 bg-white rounded-2xl shadow-lg max-w-md">
+        <div className="text-6xl mb-4">🏢</div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Không có chi nhánh</h2>
+        <p className="text-gray-600 mb-4">
+          Tài khoản của bạn chưa được gán vào chi nhánh nào.
+        </p>
+      </div>
     </div>
+  );
+
+  /* ================= UI ================= */
+  return (
+    <PermissionGuard
+      allowedRoles={["ADMIN", "AGENT"]}
+      customMessage="Bạn không có quyền truy cập trang quản lý nhân viên"
+    >
+      {isAgent && !branchId ? (
+        NoBranchComponent
+      ) : (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            {/* HEADER */}
+            <div className="mb-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Quản lý nhân viên
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-2 text-gray-600">
+                    <span>Chi nhánh:</span>
+                    <span className="font-semibold text-blue-600">
+                      {branchName}
+                    </span>
+                    <RoleBasedContent
+                      renderByRole={{
+                        ADMIN: (
+                          <span className="text-sm px-2 py-1 bg-purple-50 text-purple-600 rounded-full">
+                            Quản trị viên
+                          </span>
+                        ),
+                        AGENT: (
+                          <span className="text-sm px-2 py-1 bg-blue-50 text-blue-600 rounded-full">
+                            Quản lý chi nhánh
+                          </span>
+                        ),
+                      }}
+                    />
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1">
+                    Mã chi nhánh: {branchId} • Tổng nhân viên: {agents.length}
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-600 mt-2">
+                Quản lý thông tin nhân viên thuộc chi nhánh của bạn
+              </p>
+            </div>
+
+            <FilterBar
+              search={search}
+              setSearch={handleSearch}
+              filterStatus={filterStatus}
+              setFilterStatus={handleFilterStatus}
+              statusOptions={STATUS_OPTIONS}
+              filteredCount={filteredAgents.length}
+              totalCount={agents.length}
+              additionalFilters={[
+                {
+                  label: "Vai trò",
+                  value: filterRole,
+                  onChange: handleFilterRole,
+                  options: [
+                    { value: "ALL", label: "Tất cả vai trò" },
+                    ...ROLE_OPTIONS.map(role => ({
+                      value: role,
+                      label: role === 'AGENT' ? 'Nhân viên' : 'Người dùng'
+                    }))
+                  ]
+                }
+              ]}
+            />
+
+            <DynamicTable
+              data={paginatedAgents}
+              isLoading={isLoading || loadingUser}
+              isError={isError}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              columns={[
+                {
+                  key: "index",
+                  title: "STT",
+                  render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
+                },
+                {
+                  key: "full_name",
+                  title: "Họ tên",
+                  render: (row) => row.full_name || "-",
+                },
+                {
+                  key: "email",
+                  title: "Email",
+                  render: (row) => row.account?.email || "-",
+                },
+                {
+                  key: "phone",
+                  title: "Số điện thoại",
+                  render: (row) => row.phone || "-",
+                },
+                {
+                  key: "address",
+                  title: "Địa chỉ",
+                  render: (row) => row.address || "-",
+                },
+                {
+                  key: "branch",
+                  title: "Chi nhánh",
+                  render: (row) => row.branch?.name || "-",
+                },
+                {
+                  key: "role",
+                  title: "Vai trò",
+                  render: (row) => (
+                    <GenericBadge
+                      value={row.account?.role || "AGENT"}
+                      config={ROLE_BADGE_CONFIG}
+                    />
+                  ),
+                },
+                {
+                  key: "status",
+                  title: "Trạng thái",
+                  render: (row) => (
+                    <GenericBadge
+                      value={row.status || "ACTIVE"}
+                      config={STATUS_BADGE_CONFIG}
+                    />
+                  ),
+                },
+                {
+                  key: "created_at",
+                  title: "Ngày tạo",
+                  render: (row) => row.created_at 
+                    ? new Date(row.created_at).toLocaleDateString('vi-VN') 
+                    : "-",
+                },
+              ]}
+            />
+
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
+
+            <RoleBasedContent
+              renderByRole={{
+                ADMIN: <CreateButton label="Thêm nhân viên mới" onClick={handleOpenCreate} />,
+                AGENT: hasBranch ? (
+                  <CreateButton label="Thêm nhân viên mới" onClick={handleOpenCreate} />
+                ) : null,
+              }}
+            />
+          </div>
+
+          <DynamicForm
+            visible={showModal}
+            title={editing ? "Chỉnh sửa nhân viên" : "Tạo nhân viên mới"}
+            form={form}
+            fields={getFormFields()}
+            editing={editing}
+            successMessage={successMessage}
+            isSubmitting={
+              createMutation.isPending || updateMutation.isPending
+            }
+            onChange={handleChange}
+            onSubmit={handleSubmitAgent}
+            onCancel={resetForm}
+          />
+
+          <DynamicDialog
+            open={dialog.open}
+            mode={dialog.mode}
+            title={dialog.title}
+            message={dialog.message}
+            onClose={() => setDialog({ ...dialog, open: false })}
+            onConfirm={dialog.onConfirm}
+          />
+        </div>
+      )}
+    </PermissionGuard>
   );
 };
 

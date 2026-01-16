@@ -3,6 +3,7 @@ import { ROUTERS } from "./Router";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import RoleRoute from "./RoleRouter.jsx";
 import GuestRoute from "./GuestRole.jsx";
+import { Outlet } from "react-router-dom";
 
 // ===== USER =====
 import MasterLayout from "../pages/client/Layout";
@@ -30,13 +31,7 @@ import AdminBranchesPage from "../pages/admin/AdminBranchesPage/index.jsx";
 import AdminBillsPage from "../pages/admin/AdminBillsPage/index.jsx";
 import DashboardReport from "../pages/admin/ReportAdminPage";
 import AdminDeliveriesPage from "../pages/admin/AdminDeliveriesPage/index.jsx";
-
-// ===== AGENT =====
-import AgentDashboard from "../pages/agent/Layout";
-import AgentBillsPage from "../pages/agent/AgentBillsPage/index.jsx";
-import BranchAgentsPage from "../pages/agent/BranchAgentsPage/index.jsx";
-import ReportAgentPage from "../pages/agent/ReportAgentPage/index.jsx";
-import { elements } from "chart.js";
+import ReportAdminPage from "../pages/admin/ReportAdminPage";
 
 // ================= USER ROUTER =================
 const userRouter = [
@@ -72,9 +67,9 @@ const agentRouter = [
   { path: ROUTERS.AGENTS.DASHBOARD, element: <Dashboard /> },
   { path: ROUTERS.AGENTS.CUSTOMERS, element: <AdminCustomersPage /> },
   { path: ROUTERS.AGENTS.DELIVERIES, element: <AdminDeliveriesPage /> },
-  { path: ROUTERS.AGENTS.BILL, element: <AgentBillsPage /> },
-  { path: ROUTERS.AGENTS.AGENTS, element: <BranchAgentsPage /> },
-  { path: ROUTERS.AGENTS.REPORT, element: <ReportAgentPage /> },
+  { path: ROUTERS.AGENTS.BILL, element: <AdminBillsPage /> },
+  { path: ROUTERS.AGENTS.AGENTS, element: <AdminAgentsPage/> },
+  { path: ROUTERS.AGENTS.REPORT, element: <ReportAdminPage /> },
   { path: ROUTERS.AGENTS.PROFILE, element: <ProfilePage /> },
 ];
 
@@ -112,7 +107,7 @@ const RenderUserRouter = () => (
           );
         }
 
-        // Còn lại public
+        // public
         return <Route key={index} path={item.path} element={item.element} />;
       })}
 
@@ -123,7 +118,7 @@ const RenderUserRouter = () => (
 
 // ================= RENDER AGENT =================
 const RenderAgentRouter = () => (
-  <AgentDashboard>
+  <DashboardLayout>
     <Routes>
       {agentRouter.map((item, index) => (
         <Route
@@ -138,7 +133,7 @@ const RenderAgentRouter = () => (
       ))}
       <Route path="*" element={<NotFound />} />
     </Routes>
-  </AgentDashboard>
+  </DashboardLayout>
 );
 
 // ================= RENDER ADMIN =================

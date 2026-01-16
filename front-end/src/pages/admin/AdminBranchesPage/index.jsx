@@ -8,6 +8,8 @@ import CreateButton from "../../../components/common/buttons/CreateButton";
 import GenericBadge from "../../../components/UI/GenericBadge";
 import DynamicDialog from "../../../components/UI/DynamicDialog";
 import Pagination from "../../../components/common/Pagination";
+import PermissionGuard from "../../../components/auth/PermissionGuard"; // ✅ Import PermissionGuard
+import RoleBasedContent from "../../../components/auth/RoleBasedContent"; // ✅ Import RoleBasedContent
 
 /* ================= CONSTANTS ================= */
 
@@ -145,7 +147,6 @@ const AdminBranchesPage = () => {
     return filteredBranches.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredBranches, currentPage]);
 
-  // Reset về trang 1 khi search/filter thay đổi
   const handleSearch = (value) => {
     setSearch(value);
     setCurrentPage(1);
@@ -173,152 +174,160 @@ const AdminBranchesPage = () => {
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Quản lý chi nhánh
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Quản lý toàn bộ chi nhánh công ty
-        </p>
+    // ✅ Bọc toàn bộ page bằng PermissionGuard
+    <PermissionGuard
+      allowedRoles={["ADMIN", "MANAGER"]} // Chỉ cho phép ADMIN và MANAGER
+      customMessage="Bạn cần quyền quản trị để truy cập trang này"
+    >
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Quản lý chi nhánh
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Quản lý toàn bộ chi nhánh công ty
+          </p>
 
-        {/* FILTER BAR */}
-        <FilterBar
-          search={search}
-          setSearch={handleSearch}
-          filterStatus={filterStatus}
-          setFilterStatus={handleFilterStatus}
-          statusOptions={STATUS_OPTIONS}
-          filteredCount={filteredBranches.length}
-          totalCount={branches.length}
-        />
+          <FilterBar
+            search={search}
+            setSearch={handleSearch}
+            filterStatus={filterStatus}
+            setFilterStatus={handleFilterStatus}
+            statusOptions={STATUS_OPTIONS}
+            filteredCount={filteredBranches.length}
+            totalCount={branches.length}
+          />
 
-        <DynamicTable
-          data={paginatedBranches}
-          isLoading={isLoading}
-          isError={isError}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          columns={[
+          <DynamicTable
+            data={paginatedBranches}
+            isLoading={isLoading}
+            isError={isError}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            columns={[
+              {
+                key: "index",
+                title: "STT",
+                render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
+              },
+              {
+                key: "name",
+                title: "Tên chi nhánh",
+                render: (row) => (
+                  <span className="font-semibold text-gray-900">
+                    {row.name}
+                  </span>
+                ),
+              },
+              {
+                key: "city",
+                title: "Thành phố",
+                render: (row) => row.city || "-",
+              },
+              {
+                key: "address",
+                title: "Địa chỉ",
+                render: (row) => row.address || "-",
+              },
+              {
+                key: "phone",
+                title: "Số điện thoại",
+                render: (row) => row.phone || "-",
+              },
+              {
+                key: "status",
+                title: "Trạng thái",
+                render: (row) => (
+                  <GenericBadge
+                    value={row.status || "ACTIVE"}
+                    config={STATUS_BADGE_CONFIG}
+                  />
+                ),
+              },
+              {
+                key: "created_at",
+                title: "Ngày tạo",
+                render: (row) =>
+                  row.created_at
+                    ? new Date(row.created_at).toLocaleDateString("vi-VN")
+                    : "-",
+              },
+            ]}
+          />
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+
+          {/* ✅ Chỉ ADMIN mới thấy nút Thêm chi nhánh */}
+          <RoleBasedContent
+            renderByRole={{
+              ADMIN: <CreateButton label="Thêm chi nhánh" onClick={handleOpenCreate} />,
+            }}
+          />
+        </div>
+
+        <DynamicForm
+          visible={showModal}
+          title={editing ? "Chỉnh sửa chi nhánh" : "Tạo chi nhánh mới"}
+          form={form}
+          fields={[
             {
-              key: "index",
-              title: "STT",
-              render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
+              name: "name",
+              type: "text",
+              label: "Tên chi nhánh",
+              required: true,
             },
             {
-              key: "name",
-              title: "Tên chi nhánh",
-              render: (row) => (
-                <span className="font-semibold text-gray-900">
-                  {row.name}
-                </span>
-              ),
+              name: "city",
+              type: "text",
+              label: "Thành phố",
+              required: false,
             },
             {
-              key: "city",
-              title: "Thành phố",
-              render: (row) => row.city || "-",
+              name: "address",
+              type: "text",
+              label: "Địa chỉ",
+              required: false,
             },
             {
-              key: "address",
-              title: "Địa chỉ",
-              render: (row) => row.address || "-",
+              name: "phone",
+              type: "text",
+              label: "Số điện thoại",
+              required: false,
             },
             {
-              key: "phone",
-              title: "Số điện thoại",
-              render: (row) => row.phone || "-",
-            },
-            {
-              key: "status",
-              title: "Trạng thái",
-              render: (row) => (
-                <GenericBadge
-                  value={row.status || "ACTIVE"}
-                  config={STATUS_BADGE_CONFIG}
-                />
-              ),
-            },
-            {
-              key: "created_at",
-              title: "Ngày tạo",
-              render: (row) =>
-                row.created_at
-                  ? new Date(row.created_at).toLocaleDateString("vi-VN")
-                  : "-",
+              name: "is_active",
+              type: "checkbox",
+              label: "Kích hoạt",
             },
           ]}
-        />
-
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-
-        <CreateButton label="Thêm chi nhánh" onClick={handleOpenCreate} />
-      </div>
-
-      {/* FORM */}
-      <DynamicForm
-        visible={showModal}
-        title={editing ? "Chỉnh sửa chi nhánh" : "Tạo chi nhánh mới"}
-        form={form}
-        fields={[
-          {
-            name: "name",
-            type: "text",
-            label: "Tên chi nhánh",
-            required: true,
-          },
-          {
-            name: "city",
-            type: "text",
-            label: "Thành phố",
-            required: false,
-          },
-          {
-            name: "address",
-            type: "text",
-            label: "Địa chỉ",
-            required: false,
-          },
-          {
-            name: "phone",
-            type: "text",
-            label: "Số điện thoại",
-            required: false,
-          },
-          {
-            name: "is_active",
-            type: "checkbox",
-            label: "Kích hoạt",
-          },
-        ]}
-        editing={editing}
-        successMessage={successMessage}
-        isSubmitting={
-          createMutation.isPending || updateMutation.isPending
-        }
-        onChange={handleChange}
-        onSubmit={handleSubmitBranch}
-        onCancel={resetForm}
-      />
-
-      {/* DIALOG */}
-      <DynamicDialog
-        open={dialog.open}
-        mode={dialog.mode}
-        title={dialog.title}
-        message={dialog.message}
-        onClose={() => setDialog({ ...dialog, open: false })}
-        onConfirm={async () => {
-          if (dialog.onConfirm) {
-            await dialog.onConfirm();
+          editing={editing}
+          successMessage={successMessage}
+          isSubmitting={
+            createMutation.isPending || updateMutation.isPending
           }
-        }}
-      />
-    </div>
+          onChange={handleChange}
+          onSubmit={handleSubmitBranch}
+          onCancel={resetForm}
+        />
+
+        <DynamicDialog
+          open={dialog.open}
+          mode={dialog.mode}
+          title={dialog.title}
+          message={dialog.message}
+          onClose={() => setDialog({ ...dialog, open: false })}
+          onConfirm={async () => {
+            if (dialog.onConfirm) {
+              await dialog.onConfirm();
+            }
+          }}
+        />
+      </div>
+    </PermissionGuard>
   );
 };
 
