@@ -55,7 +55,7 @@ export default function Footer() {
                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-2 rounded-lg hover:scale-110 transition-transform duration-300">
                   <FaBox className="text-white text-lg sm:text-xl" />
                 </div>
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">CourierHub</h3>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">GoShip</h3>
               </div>
               <p className="text-xs sm:text-sm text-gray-400 leading-relaxed mb-6">
                 Hệ thống quản lý dịch vụ chuyên phát hiện đại, giúp tối ưu hóa quy trình giao hàng và nâng cao chất lượng dịch vụ.
@@ -124,8 +124,8 @@ export default function Footer() {
                 </div>
                 <div className="flex items-center gap-3">
                   <FaEnvelope className="text-blue-400 flex-shrink-0 text-sm sm:text-base" />
-                  <a href="mailto:support@courierhub.com" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors truncate">
-                    support@courierhub.com
+                  <a href="mailto:support@GoShip.com" className="text-xs sm:text-sm text-gray-400 hover:text-blue-400 transition-colors truncate">
+                    support@GoShip.com
                   </a>
                 </div>
               </div>
@@ -140,7 +140,7 @@ export default function Footer() {
             
             {/* Copyright */}
             <div className="text-xs sm:text-sm text-gray-400 text-center sm:text-left order-2 sm:order-1">
-              <p>&copy; {currentYear} <span className="text-blue-400 font-semibold">CourierHub</span>. Tất cả các quyền được bảo lưu.</p>
+              <p>&copy; {currentYear} <span className="text-blue-400 font-semibold">GoShip</span>. Tất cả các quyền được bảo lưu.</p>
             </div>
 
             {/* Legal Links */}
@@ -171,7 +171,7 @@ export default function Footer() {
 
           {/* Version Info */}
           <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-gray-700 text-center text-xs text-gray-500">
-            <p>CourierHub v1.0.0 | Built with React + Laravel | {new Date().getFullYear()}</p>
+            <p>GoShip v1.0.0 | Built with React + Laravel | {new Date().getFullYear()}</p>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
+import Chatbot from "../../../components/chats/ChatWidget";
 
 const DashboardLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -30,6 +31,11 @@ const DashboardLayout = ({ children }) => {
 
         {/* Footer */}
         <Footer />
+
+        
+        <div style={{ position: "fixed", bottom: "1rem", right: "1rem", zIndex: 999, display: "flex", flexDirection: "column", gap: "1rem", alignItems: "flex-end" }}>
+          <Chatbot isStacked={true} />
+        </div>
       </div>
     </div>
   );

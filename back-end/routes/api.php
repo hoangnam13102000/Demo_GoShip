@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ShipmentTransferController;
 use App\Http\Controllers\Api\MomoController;
 use App\Http\Controllers\Api\ChatbotController;
+use App\Http\Controllers\Api\ContactController;
 
 
 
@@ -78,6 +79,9 @@ Route::post(
 
 // ------------------ Chat bot ------------------
 Route::post('/chatbot', [ChatbotController::class, 'chat']);
+
+// ------------------ Concact ------------------
+Route::post('/contact', [ContactController::class, 'sendEmail']);
 
 Route::prefix('momo')->group(function () {
     Route::post('/create',  [MomoController::class, 'create']);

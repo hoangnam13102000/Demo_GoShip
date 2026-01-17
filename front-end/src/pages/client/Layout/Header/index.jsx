@@ -6,7 +6,6 @@ import {
   FaEnvelope,
   FaUser,
   FaSignOutAlt,
-  FaShoppingCart,
   FaAngleDown,
   FaStar,
   FaBox,
@@ -206,12 +205,7 @@ export default function ClientHeader() {
 
             {/* Right controls */}
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
-              <button className="relative p-2 sm:p-3 hover:bg-gray-100 rounded-lg sm:rounded-xl transition-all duration-200 group">
-                <FaShoppingCart className="text-gray-700 text-base sm:text-xl group-hover:text-blue-600 transition-colors duration-200" />
-                <span className="absolute -top-0.5 sm:-top-1 -right-0.5 sm:-right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] sm:text-xs font-bold w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shadow-lg">
-                  0
-                </span>
-              </button>
+              
 
               {/* Profile */}
               {isLoggedIn ? (

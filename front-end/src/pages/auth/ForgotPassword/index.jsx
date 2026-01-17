@@ -16,7 +16,7 @@ const ForgotPasswordPage = () => {
 
   return (
     <AuthLayout>
-      <AuthHeader title="CourierHub" subtitle="Quên mật khẩu" />
+      <AuthHeader title="GoShip" subtitle="Quên mật khẩu" />
       <div className="p-8 space-y-6">
         <p className="text-gray-600 text-sm">
           Nhập email của bạn để nhận link đặt lại mật khẩu.
