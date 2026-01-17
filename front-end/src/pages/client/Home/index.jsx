@@ -139,7 +139,7 @@ const HomePage = () => {
     {
       name: "Nguyễn Văn A",
       role: "Chủ shop thời trang",
-      content: "Sử dụng dịch vụ 3 năm nay, CourierHub luôn là lựa chọn số 1 cho shop của tôi. Tỷ lệ giao thành công 99%!",
+      content: "Sử dụng dịch vụ 3 năm nay, GoShip luôn là lựa chọn số 1 cho shop của tôi. Tỷ lệ giao thành công 99%!",
       rating: 5,
     },
     {
@@ -310,7 +310,7 @@ const HomePage = () => {
       <section className="py-20 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Điểm nổi bật chỉ có tại CourierHub</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">Điểm nổi bật chỉ có tại GoShip</h2>
             <p className="text-gray-600 max-w-3xl mx-auto">Những giá trị khác biệt mang đến trải nghiệm tuyệt vời cho khách hàng</p>
           </div>
 

@@ -1,4 +1,3 @@
-import React from "react";
 import {
   FaTruck,
   FaUsers,
@@ -70,10 +69,10 @@ const AboutPage = () => {
   ];
 
   const teamMembers = [
-    { name: "Nguyễn Văn An", position: "CEO & Founder", img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-    { name: "Trần Thị Bình", position: "CTO", img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-    { name: "Lê Minh Cường", position: "Head of Operations", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
-    { name: "Phạm Thu Hà", position: "Customer Success Director", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+    { name: "Hoàng Trung Nam", position: "CEO & Founder", img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+    { name: "Hà Minh Tuấn", position: "CTO", img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+    { name: "Đăng Kinh Luân", position: "Head of Operations", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+    { name: "Lê Đức thịnh", position: "Customer Success Director", img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
   ];
 
   const certifications = [

@@ -3,7 +3,6 @@ import { ROUTERS } from "./Router";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import RoleRoute from "./RoleRouter.jsx";
 import GuestRoute from "./GuestRole.jsx";
-import { Outlet } from "react-router-dom";
 
 // ===== USER =====
 import MasterLayout from "../pages/client/Layout";

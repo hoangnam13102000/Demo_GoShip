@@ -23,6 +23,47 @@ const initialForm = {
   total_amount: "",
 };
 
+/* ================= FORM FIELDS ================= */
+
+const formFields = [
+  {
+    name: "shipment_id",
+    label: "Mã vận đơn",
+    type: "number",
+    required: true,
+    placeholder: "Nhập mã vận đơn",
+    hint: "Mã vận đơn để liên kết với hóa đơn này",
+    icon: "FaHashtag",
+  },
+  {
+    name: "base_amount",
+    label: "Cước cơ bản",
+    type: "number",
+    required: true,
+    placeholder: "Nhập cước cơ bản",
+    hint: "Chi phí cước vận chuyển cơ bản",
+    icon: "FaDollarSign",
+  },
+  {
+    name: "weight_fee",
+    label: "Phí cân nặng",
+    type: "number",
+    required: false,
+    placeholder: "Nhập phí cân nặng (nếu có)",
+    hint: "Phụ phí theo cân nặng hàng hóa",
+    icon: "FaWeight",
+  },
+  {
+    name: "tax",
+    label: "Thuế",
+    type: "number",
+    required: false,
+    placeholder: "Nhập thuế (nếu có)",
+    hint: "Thuế VAT hoặc các loại thuế khác",
+    icon: "FaDollarSign",
+  },
+];
+
 /* ================= PAGE ================= */
 
 const AdminBillsPage = () => {
@@ -99,13 +140,20 @@ const AdminBillsPage = () => {
   /* ================= SUBMIT ================= */
 
   const handleSubmitBill = (e) => {
+    e.preventDefault();
+    
+    // Tính toán total amount
+    const baseAmount = Number(form.base_amount) || 0;
+    const weightFee = Number(form.weight_fee) || 0;
+    const tax = Number(form.tax) || 0;
+    
     const payload = {
-      base_amount: Number(form.base_amount),
-      weight_fee: Number(form.weight_fee || 0),
-      tax: Number(form.tax || 0),
+      base_amount: baseAmount,
+      weight_fee: weightFee,
+      tax: tax,
+      total_amount: baseAmount + weightFee + tax,
     };
 
-    // chỉ gửi shipment_id khi TẠO MỚI
     if (!editing) {
       payload.shipment_id = Number(form.shipment_id);
     }
@@ -123,7 +171,8 @@ const AdminBillsPage = () => {
         return (
           String(b.id).includes(keyword) ||
           String(b.shipment_id).includes(keyword) ||
-          String(b.total_amount).includes(keyword)
+          String(b.total_amount).includes(keyword) ||
+          b.shipment?.tracking_number?.toLowerCase().includes(keyword)
         );
       })
       .filter((b) => {
@@ -141,16 +190,6 @@ const AdminBillsPage = () => {
     return filteredBills.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredBills, currentPage]);
 
-  const handleSearch = (value) => {
-    setSearch(value);
-    setCurrentPage(1);
-  };
-
-  const handleFilterStatus = (value) => {
-    setFilterStatus(value);
-    setCurrentPage(1);
-  };
-
   /* ================= BADGE ================= */
 
   const STATUS_BADGE_CONFIG = {
@@ -167,23 +206,23 @@ const AdminBillsPage = () => {
     },
   };
 
+  const PAYMENT_BADGE = {
+    CASH: "bg-blue-100 text-blue-700",
+    MOMO: "bg-pink-100 text-pink-700",
+  };
+
   /* ================= UI ================= */
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Quản lý hóa đơn
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Quản lý toàn bộ hóa đơn vận chuyển
-        </p>
+        <h1 className="text-3xl font-bold mb-6">Quản lý hóa đơn</h1>
 
         <FilterBar
           search={search}
-          setSearch={handleSearch}
+          setSearch={setSearch}
           filterStatus={filterStatus}
-          setFilterStatus={handleFilterStatus}
+          setFilterStatus={setFilterStatus}
           statusOptions={STATUS_OPTIONS}
           filteredCount={filteredBills.length}
           totalCount={bills.length}
@@ -197,14 +236,8 @@ const AdminBillsPage = () => {
           onDelete={handleDelete}
           columns={[
             {
-              key: "index",
-              title: "STT",
-              render: (_, i) =>
-                (currentPage - 1) * itemsPerPage + i + 1,
-            },
-            {
               key: "id",
-              title: "Mã hóa đơn",
+              title: "Mã HĐ",
               render: (row) => (
                 <span className="font-mono font-semibold text-blue-600">
                   #{row.id}
@@ -212,43 +245,41 @@ const AdminBillsPage = () => {
               ),
             },
             {
-              key: "shipment_id",
+              key: "tracking",
               title: "Mã vận đơn",
-              render: (row) => <span>#{row.shipment_id}</span>,
+              render: (row) => (
+                <span className="font-mono text-gray-800">
+                  {row.shipment?.tracking_number || "--"}
+                </span>
+              ),
             },
             {
-              key: "base_amount",
-              title: "Giá cơ bản",
-              render: (row) =>
-                Number(row.base_amount).toLocaleString("vi-VN") + "đ",
-            },
-            {
-              key: "weight_fee",
-              title: "Phí trọng lượng",
-              render: (row) =>
-                Number(row.weight_fee).toLocaleString("vi-VN") + "đ",
-            },
-            {
-              key: "tax",
-              title: "Thuế",
-              render: (row) =>
-                Number(row.tax).toLocaleString("vi-VN") + "đ",
+              key: "payment",
+              title: "Thanh toán",
+              render: (row) => {
+                const method = row.payments?.[0]?.method;
+                if (!method) return "--";
+                return (
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-semibold ${PAYMENT_BADGE[method]}`}
+                  >
+                    {method}
+                  </span>
+                );
+              },
             },
             {
               key: "total_amount",
               title: "Tổng tiền",
-              render: (row) => (
-                <span className="font-semibold text-blue-600">
-                  {Number(row.total_amount).toLocaleString("vi-VN")}đ
-                </span>
-              ),
+              render: (row) =>
+                Number(row.total_amount).toLocaleString("vi-VN") + "đ",
             },
             {
               key: "status",
               title: "Trạng thái",
               render: (row) => (
                 <GenericBadge
-                  value={row.status || "UNPAID"}
+                  value={row.status}
                   config={STATUS_BADGE_CONFIG}
                 />
               ),
@@ -257,9 +288,7 @@ const AdminBillsPage = () => {
               key: "created_at",
               title: "Ngày tạo",
               render: (row) =>
-                row.created_at
-                  ? new Date(row.created_at).toLocaleDateString("vi-VN")
-                  : "-",
+                new Date(row.created_at).toLocaleDateString("vi-VN"),
             },
           ]}
         />
@@ -273,50 +302,18 @@ const AdminBillsPage = () => {
         <CreateButton label="Tạo hóa đơn" onClick={handleOpenCreate} />
       </div>
 
-      {/* FORM */}
       <DynamicForm
         visible={showModal}
-        title={editing ? "Chỉnh sửa hóa đơn" : "Tạo hóa đơn mới"}
+        title={editing ? "Chỉnh sửa hóa đơn" : "Tạo hóa đơn"}
         form={form}
-        fields={[
-          {
-            name: "shipment_id",
-            type: "number",
-            label: "Mã vận đơn",
-            required: true,
-            readOnly: !!editing,
-          },
-          {
-            name: "base_amount",
-            type: "number",
-            label: "Giá cơ bản (đ)",
-            required: true,
-          },
-          {
-            name: "weight_fee",
-            type: "number",
-            label: "Phí trọng lượng (đ)",
-          },
-          {
-            name: "tax",
-            type: "number",
-            label: "Thuế (đ)",
-          },
-          {
-            name: "total_amount",
-            type: "number",
-            label: "Tổng tiền (đ)",
-            readOnly: true,
-          },
-        ]}
+        fields={formFields}
         editing={editing}
-        successMessage={successMessage}
-        isSubmitting={
-          createMutation.isPending || updateMutation.isPending
-        }
         onChange={handleChange}
         onSubmit={handleSubmitBill}
         onCancel={resetForm}
+        successMessage={successMessage}
+        isSubmitting={createMutation.isLoading || updateMutation.isLoading}
+        error={createMutation.error?.message || updateMutation.error?.message}
       />
 
       <DynamicDialog

@@ -4,7 +4,6 @@ import useHandleCRUD from "../../../utils/hooks/useHandleCRUD";
 import DynamicTable from "../../../components/common/DynamicTable";
 import DynamicForm from "../../../components/common/DynamicForm";
 import FilterBar from "../../../components/common/FilterBar";
-import CreateButton from "../../../components/common/buttons/CreateButton";
 import GenericBadge from "../../../components/UI/GenericBadge";
 import DynamicDialog from "../../../components/UI/DynamicDialog";
 import Pagination from "../../../components/common/Pagination";
@@ -32,13 +31,12 @@ const toStatus = (v) => (toBool(v) ? "ACTIVE" : "INACTIVE");
 
 const AdminCustomersPage = () => {
   /* ================= API ================= */
-  const { useGetAll, useCreate, useUpdate, useDelete } =
-    useCRUDApi("customers");
+  const { useGetAll, useUpdate, useDelete } = useCRUDApi("customers");
 
-  const { data: customers = [], isLoading, isError } =
-    useGetAll({ staleTime: 30000 });
+  const { data: customers = [], isLoading, isError } = useGetAll({
+    staleTime: 30000,
+  });
 
-  const createMutation = useCreate();
   const updateMutation = useUpdate();
   const deleteMutation = useDelete();
 
@@ -67,7 +65,6 @@ const AdminCustomersPage = () => {
     handleSubmit,
     handleDelete,
   } = useHandleCRUD({
-    createMutation,
     updateMutation,
     deleteMutation,
     resetForm,
@@ -83,12 +80,6 @@ const AdminCustomersPage = () => {
     }));
   };
 
-  const handleOpenCreate = () => {
-    setForm(initialForm);
-    setEditing(null);
-    setShowModal(true);
-  };
-
   const handleEdit = (customer) => {
     setEditing(customer);
     setForm({
@@ -101,11 +92,10 @@ const AdminCustomersPage = () => {
     setShowModal(true);
   };
 
-  /* ================= SUBMIT (QUAN TRỌNG) ================= */
+  /* ================= SUBMIT ================= */
   const handleSubmitCustomer = (e) => {
     const payload = {
       full_name: form.full_name,
-      email: form.email,
       phone: form.phone,
       address: form.address,
       status: toStatus(form.is_active),
@@ -142,7 +132,6 @@ const AdminCustomersPage = () => {
     return filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredCustomers, currentPage]);
 
-  // Reset về trang 1 khi search/filter thay đổi
   const handleSearch = (value) => {
     setSearch(value);
     setCurrentPage(1);
@@ -179,7 +168,6 @@ const AdminCustomersPage = () => {
           Quản lý thông tin khách hàng
         </p>
 
-        {/* FILTER BAR */}
         <FilterBar
           search={search}
           setSearch={handleSearch}
@@ -200,7 +188,8 @@ const AdminCustomersPage = () => {
             {
               key: "index",
               title: "STT",
-              render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
+              render: (_, i) =>
+                (currentPage - 1) * itemsPerPage + i + 1,
             },
             {
               key: "full_name",
@@ -235,62 +224,34 @@ const AdminCustomersPage = () => {
           ]}
         />
 
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-
-        <CreateButton label="Thêm khách hàng" onClick={handleOpenCreate} />
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
       </div>
 
-      {/* FORM */}
+      {/* FORM – CHỈ DÙNG ĐỂ EDIT */}
       <DynamicForm
         visible={showModal}
-        title={editing ? "Chỉnh sửa khách hàng" : "Tạo khách hàng mới"}
+        title="Chỉnh sửa khách hàng"
         form={form}
         fields={[
-          {
-            name: "full_name",
-            type: "text",
-            label: "Họ tên",
-            required: true,
-          },
-          {
-            name: "email",
-            type: "text",
-            label: "Email",
-            readOnly: editing ? true : false,
-          },
-          {
-            name: "phone",
-            type: "text",
-            label: "Số điện thoại",
-            required: false,
-          },
-          {
-            name: "address",
-            type: "text",
-            label: "Địa chỉ",
-            required: false,
-          },
-          {
-            name: "is_active",
-            type: "checkbox",
-            label: "Kích hoạt",
-          },
+          { name: "full_name", type: "text", label: "Họ tên", required: true },
+          { name: "email", type: "text", label: "Email", readOnly: true },
+          { name: "phone", type: "text", label: "Số điện thoại" },
+          { name: "address", type: "text", label: "Địa chỉ" },
         ]}
         editing={editing}
         successMessage={successMessage}
-        isSubmitting={
-          createMutation.isPending || updateMutation.isPending
-        }
+        isSubmitting={updateMutation.isPending}
         onChange={handleChange}
         onSubmit={handleSubmitCustomer}
         onCancel={resetForm}
       />
 
-      {/* DIALOG */}
       <DynamicDialog
         open={dialog.open}
         mode={dialog.mode}

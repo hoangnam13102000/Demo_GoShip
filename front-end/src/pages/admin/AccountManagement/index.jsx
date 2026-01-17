@@ -15,13 +15,17 @@ const ROLE_OPTIONS = ["ADMIN", "AGENT"];
 const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
 
 /* ================= INITIAL FORM ================= */
-
+/**
+ * status: boolean
+ * true  -> ACTIVE
+ * false -> INACTIVE
+ */
 const initialForm = {
   email: "",
   password: "",
   role: "AGENT",
   branch_id: "",
-  status: "ACTIVE",
+  status: true,
 };
 
 /* ================= PAGE ================= */
@@ -78,13 +82,13 @@ const AdminAccountsPage = () => {
   });
 
   // ================= HANDLERS =================
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox"
-        ? checked ? "ACTIVE" : "INACTIVE"
-        : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -100,8 +104,8 @@ const AdminAccountsPage = () => {
       email: account.email || "",
       password: "",
       role: account.role || "AGENT",
-      branch_id: account.branch_id || "",
-      status: account.status || "ACTIVE",
+      branch_id: account.agent?.branch_id || "",
+      status: account.status === "ACTIVE",
     });
     setShowModal(true);
   };
@@ -111,10 +115,15 @@ const AdminAccountsPage = () => {
     const payload = {
       email: form.email,
       role: form.role,
-      branch_id: form.branch_id,
-      status: form.status,
+      status: form.status ? "ACTIVE" : "INACTIVE",
     };
 
+    // chỉ gửi branch_id khi là AGENT
+    if (form.role === "AGENT") {
+      payload.branch_id = form.branch_id;
+    }
+
+    // password
     if (form.password) {
       payload.password = form.password;
     }
@@ -253,16 +262,20 @@ const AdminAccountsPage = () => {
               value: r,
             })),
           },
-          {
-            name: "branch_id",
-            type: "select",
-            label: "Chi nhánh",
-            required: true,
-            options: branches.map((b) => ({
-              label: b.name,
-              value: b.id,
-            })),
-          },
+          ...(form.role === "AGENT"
+            ? [
+                {
+                  name: "branch_id",
+                  type: "select",
+                  label: "Chi nhánh",
+                  required: true,
+                  options: branches.map((b) => ({
+                    label: b.name,
+                    value: b.id,
+                  })),
+                },
+              ]
+            : []),
           {
             name: "status",
             type: "checkbox",

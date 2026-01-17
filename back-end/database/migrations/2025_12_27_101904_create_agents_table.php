@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('agents', function (Blueprint $table) {
             $table->id();
-            $table->string('full_name');
+            $table->string('full_name')->nullable();
             $table->string('phone')->nullable();
             $table->string('address')->nullable();
             $table->foreignId('account_id')->constrained('accounts')->onDelete('cascade');
