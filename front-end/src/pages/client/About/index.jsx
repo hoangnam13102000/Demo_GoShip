@@ -7,7 +7,7 @@ const AboutPage = () => {
 
       {/* HERO */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-700 text-white py-20 px-6 text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-4">Giới thiệu CourierHub</h1>
+        <h1 className="text-4xl sm:text-5xl font-bold mb-4">Giới thiệu GoShip</h1>
         <p className="text-blue-100 text-lg max-w-3xl mx-auto">
           Nền tảng chuyển phát nhanh – chính xác – theo dõi thời gian thực, dành cho cá nhân và doanh nghiệp.
         </p>

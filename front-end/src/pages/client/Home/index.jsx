@@ -15,6 +15,8 @@ import { useCRUDApi } from "../../../api/hooks/useCRUDApi";
 import ServiceCard from "../../../components/common/Cards/ServiceCard";
 import TrackingSearch from "../../../components/common/bars/TrackingSearch";
 import TrackingResult from "../../../pages/client/Tracking/TrackingResult";
+import ChatBubble from "../../../components/chats/MessengerChat";
+import Chatbot from "../../../components/chats/ChatWidget"; // Thêm import Chatbot
 
 /* ================= ICON MAP ================= */
 const SERVICE_ICON_MAP = {
@@ -213,6 +215,15 @@ const HomePage = () => {
           </button>
         </div>
       </section>
+
+      {/* Chat Bubbles Wrapper - Xếp dọc */}
+      <div style={{ position: "fixed", bottom: "1rem", right: "1rem", zIndex: 999, display: "flex", flexDirection: "column", gap: "1rem", alignItems: "flex-end" }}>
+        {/* Messenger Chat - Khai báo trước, nằm trên */}
+        <ChatBubble isStacked={true} />
+
+        {/* Chat Widget - Khai báo sau, nằm dưới */}
+        <Chatbot isStacked={true} />
+      </div>
     </div>
   );
 };

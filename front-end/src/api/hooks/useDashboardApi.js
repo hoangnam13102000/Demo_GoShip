@@ -59,3 +59,15 @@ export const useTopServices = (startDate, endDate) =>
     },
     keepPreviousData: true,
   });
+  
+export const usePendingShipments = (limit = 10) => {
+  return useQuery({
+    queryKey: ["pending-shipments", limit],
+    queryFn: async () => {
+      const res = await api.get(
+        `/dashboard/pending-shipments?limit=${limit}`
+      );
+      return res.data;
+    },
+  });
+};

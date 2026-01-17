@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ShipmentTransferController;
 use App\Http\Controllers\Api\MomoController;
+use App\Http\Controllers\Api\ChatbotController;
 
 
 
@@ -51,6 +52,7 @@ Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
 Route::get('/dashboard/top-services', [DashboardController::class, 'topServices']);
 Route::get('/dashboard/export', [DashboardController::class, 'exportExcel']);
 Route::get('/dashboard/export-receipts', [DashboardController::class, 'exportReceiptsExcel']);
+Route::get('/dashboard/pending-shipments', [DashboardController::class, 'pendingShipments']);
 
 Route::apiResource('accounts', AccountController::class);
 Route::apiResource('customers', CustomerController::class);
@@ -74,6 +76,8 @@ Route::post(
     [ShipmentTransferController::class, 'transfer']
 );
 
+// ------------------ Chat bot ------------------
+Route::post('/chatbot', [ChatbotController::class, 'chat']);
 
 Route::prefix('momo')->group(function () {
     Route::post('/create',  [MomoController::class, 'create']);
