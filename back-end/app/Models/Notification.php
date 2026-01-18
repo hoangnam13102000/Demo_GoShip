@@ -18,6 +18,10 @@ class Notification extends Model
         'sent_at',       // thêm
     ];
 
+      protected $casts = [
+        'is_read' => 'boolean',
+        'sent_at' => 'datetime',
+    ];
     // Quan hệ với Account
     public function account()
     {

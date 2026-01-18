@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FaBox,
   FaCheckCircle,
@@ -13,6 +13,7 @@ import {
   FaBuilding,
   FaRoad,
   FaPlus,
+  FaPrint,
 } from "react-icons/fa";
 import axios from "../../../api/axios";
 
@@ -29,7 +30,8 @@ import useCurrentUser from "../../../utils/auth/useCurrentUser";
 import ShipmentCard from "../../../components/common/Cards/ShipmentCard";
 import TrackingSearch from "../../../components/common/bars/TrackingSearch";
 import TrackingResult from "../../../pages/client/Tracking/TrackingResult";
-import CreateShipmentPage from "../../../pages/client/CreateShipmentPage"; // Import CreateShipmentPage
+import CreateShipmentPage from "../../../pages/client/CreateShipmentPage";
+import ReceiptPrintButton from "../../../components/common/buttons/PrintReceiptButton";
 
 const DeliveryManager = () => {
   /* ================= USER & PERMISSION ================= */
@@ -162,7 +164,7 @@ const DeliveryManager = () => {
   const [trackingData, setTrackingData] = useState(null);
   const [trackingLoading, setTrackingLoading] = useState(false);
   const [trackingError, setTrackingError] = useState("");
-  const [showCreateShipment, setShowCreateShipment] = useState(false); // State cho form tạo đơn hàng
+  const [showCreateShipment, setShowCreateShipment] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -261,7 +263,7 @@ const DeliveryManager = () => {
 
   const handleCloseCreateShipment = () => {
     setShowCreateShipment(false);
-    refetch(); // Refresh lại danh sách đơn hàng sau khi tạo xong
+    refetch();
   };
 
   const confirmStatusUpdate = async () => {
@@ -542,6 +544,20 @@ const DeliveryManager = () => {
                 
                 {trackingData && (
                   <div className="mt-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-slate-800">Kết quả tra cứu</h3>
+                      {trackingData.shipment && (isAdmin || isAgent) && (
+                        <ReceiptPrintButton
+                          shipment={trackingData.shipment}
+                          customerInfo={currentCustomer}
+                          branches={branches}
+                          variant="primary"
+                          size="sm"
+                          onPrintStart={() => console.log('Bắt đầu in biên nhận tra cứu...')}
+                          onPrintEnd={() => console.log('In biên nhận tra cứu xong!')}
+                        />
+                      )}
+                    </div>
                     <TrackingResult 
                       data={trackingData} 
                       compact={true}
@@ -666,21 +682,53 @@ const DeliveryManager = () => {
                     );
 
                     return (
-                      <ShipmentCard
-                        key={shipment.id}
-                        shipment={shipment}
-                        statusConfig={statusConfig}
-                        isExpanded={isExpanded}
-                        onToggleExpand={() =>
-                          setExpandedId(isExpanded ? null : shipment.id)
-                        }
-                        currentBranch={currentBranch}
-                        branches={branches}
-                        showActions={isAdmin || isAgent}
-                        onStatusUpdate={handleStatusUpdate}
-                        onTransfer={handleTransferShipment}
-                        onDelete={handleDelete}
-                      />
+                      <div key={shipment.id} className="relative">
+                        <ShipmentCard
+                          shipment={shipment}
+                          statusConfig={statusConfig}
+                          isExpanded={isExpanded}
+                          onToggleExpand={() =>
+                            setExpandedId(isExpanded ? null : shipment.id)
+                          }
+                          currentBranch={currentBranch}
+                          branches={branches}
+                          showActions={isAdmin || isAgent}
+                          onStatusUpdate={handleStatusUpdate}
+                          onTransfer={handleTransferShipment}
+                          onDelete={handleDelete}
+                          // Thêm ReceiptPrintButton vào ShipmentCard
+                          customActions={(isAdmin || isAgent) && (
+                            <div className="flex items-center gap-2 ml-auto">
+                              <ReceiptPrintButton
+                                shipment={shipment}
+                                customerInfo={currentCustomer}
+                                branches={branches}
+                                variant="outline"
+                                size="sm"
+                                onPrintStart={() => console.log(`Bắt đầu in đơn ${shipment.tracking_number}...`)}
+                                onPrintEnd={() => console.log(`In đơn ${shipment.tracking_number} xong!`)}
+                                className="shadow-sm"
+                              />
+                            </div>
+                          )}
+                        />
+                        
+                        {/* Fallback: Thêm nút in bên ngoài ShipmentCard nếu customActions không hoạt động */}
+                        {(isAdmin || isAgent) && (
+                          <div className="absolute top-4 right-4 z-10">
+                            <ReceiptPrintButton
+                              shipment={shipment}
+                              customerInfo={currentCustomer}
+                              branches={branches}
+                              variant="outline"
+                              size="sm"
+                              onPrintStart={() => console.log(`Bắt đầu in đơn ${shipment.tracking_number}...`)}
+                              onPrintEnd={() => console.log(`In đơn ${shipment.tracking_number} xong!`)}
+                              className="shadow-md bg-white"
+                            />
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>

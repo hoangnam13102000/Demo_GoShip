@@ -96,7 +96,6 @@ const ShipmentCard = ({
               <p className="font-semibold text-slate-900">
                 {shipment.charge?.toLocaleString()}đ
               </p>
-              <p className="text-xs text-slate-500">{shipment.weight}kg</p>
             </div>
             <FaChevronDown
               className={`w-5 h-5 text-slate-400 transition flex-shrink-0 ${

@@ -5,58 +5,72 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    // Lấy danh sách tất cả thông báo
-    public function index()
+    public function index(Request $request)
     {
-        $notifications = Notification::with('account')->get();
-        return response()->json($notifications);
-    }
+        $user = Auth::user();
+        
+        $query = Notification::with(['shipment', 'shipment.customer'])
+            ->where('account_id', $user->id)
+            ->orderBy('sent_at', 'desc');
 
-    // Tạo thông báo mới
-    public function store(Request $request)
-    {
-        $request->validate([
-            'account_id' => 'required|exists:accounts,id',
-            'title' => 'required|string|max:255',
-            'message' => 'required|string',
-            'is_read' => 'sometimes|boolean',
+        if ($request->has('unread_only') && $request->unread_only) {
+            $query->where('is_read', false);
+        }
+
+        $notifications = $query->paginate(20);
+
+        return response()->json([
+            'notifications' => $notifications,
+            'unread_count' => Notification::where('account_id', $user->id)
+                ->where('is_read', false)
+                ->count(),
         ]);
-
-        $notification = Notification::create($request->all());
-        return response()->json($notification, 201);
     }
 
-    // Lấy chi tiết thông báo
-    public function show($id)
+    public function markAsRead($id)
     {
-        $notification = Notification::with('account')->findOrFail($id);
-        return response()->json($notification);
-    }
+        $user = Auth::user();
+        
+        $notification = Notification::where('id', $id)
+            ->where('account_id', $user->id)
+            ->firstOrFail();
 
-    // Cập nhật thông báo
-    public function update(Request $request, $id)
-    {
-        $notification = Notification::findOrFail($id);
+        $notification->update(['is_read' => true]);
 
-        $request->validate([
-            'account_id' => 'sometimes|required|exists:accounts,id',
-            'title' => 'sometimes|required|string|max:255',
-            'message' => 'sometimes|required|string',
-            'is_read' => 'sometimes|boolean',
+        return response()->json([
+            'success' => true,
+            'unread_count' => Notification::where('account_id', $user->id)
+                ->where('is_read', false)
+                ->count(),
         ]);
-
-        $notification->update($request->all());
-        return response()->json($notification);
     }
 
-    // Xóa thông báo
-    public function destroy($id)
+    public function markAllAsRead()
     {
-        $notification = Notification::findOrFail($id);
-        $notification->delete();
-        return response()->json(['message' => 'Notification deleted successfully']);
+        $user = Auth::user();
+        
+        Notification::where('account_id', $user->id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => 0,
+        ]);
+    }
+
+    public function getUnreadCount()
+    {
+        $user = Auth::user();
+        
+        $count = Notification::where('account_id', $user->id)
+            ->where('is_read', false)
+            ->count();
+
+        return response()->json(['count' => $count]);
     }
 }
