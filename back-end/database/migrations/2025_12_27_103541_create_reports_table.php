@@ -10,10 +10,15 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
+
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('report_type', ['SHIPMENTS_BY_DATE', 'SHIPMENTS_BY_CITY', 'AGENT_PERFORMANCE']);
-            $table->json('data')->nullable(); 
+
+            // REPORT TYPE (PostgreSQL safe)
+            $table->string('report_type');
+
+            $table->json('data')->nullable();
+
             $table->timestamps();
         });
     }
