@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        
 
         
         DB::table('notifications')->truncate();
@@ -24,8 +24,6 @@ class DatabaseSeeder extends Seeder
         DB::table('shipment_services')->truncate();
         DB::table('shipment_statuses')->truncate();
 
-        
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         
         $this->call([

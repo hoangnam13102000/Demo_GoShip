@@ -9,12 +9,7 @@ class BillSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        DB::table('payments')->truncate();
-        DB::table('bills')->truncate();
-
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+      
 
         $shipmentIds = DB::table('shipments')->pluck('id');
 

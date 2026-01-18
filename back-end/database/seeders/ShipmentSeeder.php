@@ -11,14 +11,6 @@ class ShipmentSeeder extends Seeder
 {
     public function run(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | 1. Reset dữ liệu
-        |--------------------------------------------------------------------------
-        */
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('shipments')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         /*
         |--------------------------------------------------------------------------

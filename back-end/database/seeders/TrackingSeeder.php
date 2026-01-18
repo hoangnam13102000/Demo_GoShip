@@ -10,9 +10,7 @@ class TrackingSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('trackings')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        
 
         $shipments = DB::table('shipments')->get();
 
