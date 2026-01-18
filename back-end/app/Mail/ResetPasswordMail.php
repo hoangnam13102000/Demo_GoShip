@@ -8,16 +8,22 @@ use Illuminate\Queue\SerializesModels;
 
 class ResetPasswordMail extends Mailable
 {
-    public $link;
+    use Queueable, SerializesModels;
 
-    public function __construct($link)
+    public $resetLink;
+
+    public function __construct($resetLink)
     {
-        $this->link = $link;
+        $this->resetLink = $resetLink;
     }
 
     public function build()
     {
-        return $this->subject('Đặt lại mật khẩu')
-            ->view('emails.reset-password');
+        return $this->subject('Đặt lại mật khẩu - GoShip')
+                    ->view('emails.reset-password')
+                    ->with([
+                        'resetLink' => $this->resetLink,
+                        'expiresIn' => '24 giờ'
+                    ]);
     }
 }

@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\AgentController;
 use App\Http\Controllers\Api\ShipmentController;
 use App\Http\Controllers\Api\ShipmentServiceController;
-use App\Http\Controllers\Api\ShipmentStatusController; 
+use App\Http\Controllers\Api\ShipmentStatusController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ReportController;
@@ -26,25 +26,27 @@ use App\Http\Controllers\Api\ContactController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/validate-reset-token', [AuthController::class, 'validateResetToken']);
 
-Route::middleware('auth:sanctum')->group(function() {
+Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    Route::middleware('role:ADMIN')->get('/admin/dashboard', function() {
+
+    Route::middleware('role:ADMIN')->get('/admin/dashboard', function () {
         return ['message' => 'Admin dashboard'];
     });
 
-    Route::middleware('role:AGENT')->get('/agent/dashboard', function() {
+    Route::middleware('role:AGENT')->get('/agent/dashboard', function () {
         return ['message' => 'Agent dashboard'];
     });
 
-    Route::middleware('role:USER')->get('/dashboard', function() {
+    Route::middleware('role:USER')->get('/dashboard', function () {
         return ['message' => 'User dashboard'];
-
     });
-
-    
 });
 
 Route::get('/dashboard/revenue', [DashboardController::class, 'revenueLast12Months']);
@@ -72,6 +74,9 @@ Route::get('/ping', function () {
     return response()->json(['message' => 'API is working']);
 });
 Route::get('/profile/{accountId}', [ProfileController::class, 'getProfile']);
+Route::put('/profile/{accountId}', [ProfileController::class, 'updateProfile']);
+Route::post('/profile/{accountId}/change-password', [ProfileController::class, 'changePassword']);
+
 Route::post(
     '/shipments/transfer',
     [ShipmentTransferController::class, 'transfer']

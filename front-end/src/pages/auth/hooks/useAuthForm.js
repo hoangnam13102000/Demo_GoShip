@@ -72,7 +72,6 @@ export const useAuthForm = (mode = "login") => {
 
       saveEmailHistory(email);
 
-    
       window.dispatchEvent(new Event("auth-change"));
 
       return response;
@@ -100,9 +99,7 @@ export const useAuthForm = (mode = "login") => {
           password_confirmation: values.confirmPassword,
         });
 
-        console.log("=== Register response ===", registerResponse);
-
-        await handleLogin(values.email, values.password);
+        //(await handleLogin(values.email, values.password));
 
         if (onSuccess) {
           onSuccess(registerResponse);
@@ -110,10 +107,7 @@ export const useAuthForm = (mode = "login") => {
       }
 
       if (mode === "login") {
-        const loginResponse = await handleLogin(
-          values.email,
-          values.password
-        );
+        const loginResponse = await handleLogin(values.email, values.password);
 
         console.log("=== Login successful ===", loginResponse);
 

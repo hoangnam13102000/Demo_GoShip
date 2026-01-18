@@ -12,13 +12,22 @@ export const loginAPI = async (data) => {
   return res.data;
 };
 
-// ================= FORGOT PASSWORD =================
 export const forgotPasswordAPI = (data) =>
-  axios.post("/forgot-password", data).then(res => res.data);
+  axios.post(`${API_URL}/forgot-password`, data).then(res => res.data);
 
-// ================= RESET PASSWORD =================
 export const resetPasswordAPI = (data) =>
-  axios.post("/reset-password", data).then(res => res.data);
+  axios.post(`${API_URL}/reset-password`, data).then(res => res.data);
+
+export const validateResetTokenAPI = (data) =>
+  axios.post(`${API_URL}/validate-reset-token`, data).then(res => res.data);
+
+// ================= CHANGE PASSWORD (authenticated) =================
+export const changePasswordAPI = async (data, token) => {
+  const res = await axios.post(`${API_URL}/change-password`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
 
 export const logoutAPI = async (token) => {
   const res = await axios.post(
@@ -35,7 +44,24 @@ export const getCurrentUser = async (token) => {
   });
   return res.data;
 };
+
 export const checkUsernameExists = async (username) => {
   const res = await axios.post(`${API_URL}/check-username`, { username });
   return res.data.exists; 
+};
+
+// ================= GET USER PROFILE =================
+export const getProfileAPI = async (accountId, token) => {
+  const res = await axios.get(`${API_URL}/profile/${accountId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
+
+// ================= UPDATE USER PROFILE =================
+export const updateProfileAPI = async (accountId, data, token) => {
+  const res = await axios.put(`${API_URL}/profile/${accountId}`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
 };

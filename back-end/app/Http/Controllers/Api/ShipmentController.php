@@ -109,11 +109,11 @@ class ShipmentController extends Controller
             ]);
 
             /* =======================
-             * CREATE BILL (FIX base_amount)
+             * CREATE BILL 
              * ======================= */
             $bill = Bill::create([
                 'shipment_id'  => $shipment->id,
-                'base_amount'  => $shipment->charge, // ✅ FIX LỖI 1364
+                'base_amount'  => $shipment->charge, 
                 'total_amount' => $shipment->charge,
                 'status'       => $paymentMethod === 'CASH' ? 'PAID' : 'UNPAID',
             ]);

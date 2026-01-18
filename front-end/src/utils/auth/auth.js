@@ -8,7 +8,9 @@ export const getUser = () => {
 };
 
 export const isAuthenticated = () => {
-  return !!getToken();
+  const token = getToken();
+  const user = getUser();
+  return !!token && !!user;
 };
 
 export const hasRole = (roles = []) => {

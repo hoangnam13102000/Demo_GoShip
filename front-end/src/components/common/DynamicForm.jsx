@@ -576,7 +576,7 @@ const DynamicForm = ({
       </div>
 
       {/* Custom CSS Animations */}
-      <style jsx>{`
+      <style >{`
         @keyframes fadeIn {
           from {
             opacity: 0;

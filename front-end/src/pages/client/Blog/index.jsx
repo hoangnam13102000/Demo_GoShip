@@ -538,7 +538,7 @@ const BlogPage = () => {
       </div>
 
       {/* Custom Styles */}
-      <style jsx>{`
+      <style >{`
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;

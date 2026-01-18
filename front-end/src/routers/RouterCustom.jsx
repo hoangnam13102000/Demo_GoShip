@@ -10,6 +10,7 @@ import HomePage from "../pages/client/Home";
 import LoginPage from "../pages/auth/Login";
 import RegisterPage from "../pages/auth/Resgister";
 import ForgotPasswordPage from "../pages/auth/ForgotPassword";
+import ResetPasswordPage from "../pages/auth/ForgotPassword/ResetPasswordPage.jsx";
 import AboutPage from "../pages/client/About";
 import ContactPage from "../pages/client/Contact";
 import ServicesPage from "../pages/client/Services";
@@ -38,6 +39,7 @@ const userRouter = [
   { path: ROUTERS.USER.LOGIN, element: <LoginPage /> },
   { path: ROUTERS.USER.REGISTER, element: <RegisterPage /> },
   { path: ROUTERS.USER.FORGOTPASSWORD, element: <ForgotPasswordPage /> },
+   { path: ROUTERS.USER.RESETPASSWORD, element: <ResetPasswordPage /> },
   { path: ROUTERS.USER.ABOUT, element: <AboutPage /> },
   { path: ROUTERS.USER.CONTACT, element: <ContactPage /> },
   { path: ROUTERS.USER.SERVICES, element: <ServicesPage /> },
