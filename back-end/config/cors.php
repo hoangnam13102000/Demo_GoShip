@@ -3,8 +3,7 @@
 return [
 
     'paths' => [
-        'api/*',
-        'sanctum/csrf-cookie',
+        '*',
     ],
 
     'allowed_methods' => ['*'],
@@ -13,7 +12,6 @@ return [
         'http://localhost:5178',
         'http://127.0.0.1:5178',
         'https://demo-go-ship.vercel.app',
-
     ],
 
     'allowed_origins_patterns' => [
@@ -26,5 +24,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 ];
