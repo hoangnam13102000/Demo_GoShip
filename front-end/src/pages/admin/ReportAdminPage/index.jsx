@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import React, { useState, memo } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,12 +9,19 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { FaBox, FaUsers, FaTruck, FaMoneyBill, FaLayerGroup, FaClock, FaCalendar, FaArrowUp } from "react-icons/fa";
+import { 
+  FaBox, 
+  FaUsers, 
+  FaTruck, 
+  FaMoneyBill, 
+  FaLayerGroup, 
+  FaClock, 
+  FaFileExcel,
+} from "react-icons/fa";
 import StatCard from "../../../components/common/Cards/StatCard";
 import { format } from "date-fns";
 import RevenueChart from "../../../components/UI/charts/RevenueChart";
 import PieChartCard from "../../../components/UI/charts/PieChartCard";
-import ExportButtons from "../../../components/common/buttons/ExportButtons";
 import DashboardHeader from "../../../components/UI/dashboard/DashboardHeader";
 import { 
   useDashboardSummary, 
@@ -24,12 +31,16 @@ import {
   formatCurrency 
 } from "../../../api/hooks/useDashboardApi";
 
+// Import component ReportPrintButton
+import ReportPrintButton from "../../../components/common/buttons/ReportPrintButton";
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const DashboardReport = () => {
   // ===== State lọc ngày =====
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-01"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // ===== Fetch dữ liệu từ useDashboardApi.js =====
   const { data: summary = {}, isLoading: loadingSummary } = useDashboardSummary(startDate, endDate);
@@ -37,24 +48,12 @@ const DashboardReport = () => {
   const { data: topCustomers = [], isLoading: loadingTopCustomers } = useTopCustomers(startDate, endDate);
   const { data: topServices = [], isLoading: loadingTopServices } = useTopServices(startDate, endDate);
 
-  // ===== Hàm xuất file =====
+  // ===== Hàm xuất file Excel =====
   const exportExcel = () => {
     window.open(
       `http://127.0.0.1:8000/api/dashboard/export?start_date=${startDate}&end_date=${endDate}`,
       "_blank"
     );
-  };
-
-  const exportPDF = () => {
-    window.open(
-      `http://127.0.0.1:8000/api/dashboard/export-pdf?start_date=${startDate}&end_date=${endDate}`,
-      "_blank"
-    );
-  };
-
-  const exportOther = () => {
-    // Logic xuất file khác
-    console.log("Xuất file khác");
   };
 
   // ===== Quick Stats cho DashboardHeader =====
@@ -129,6 +128,36 @@ const DashboardReport = () => {
     ? (summary.totalOrders || 0) / summary.totalCustomers 
     : 0;
 
+  // ===== Custom Export Buttons với nút in =====
+  const CustomExportButtons = () => (
+    <div className="flex gap-2">
+      <button
+        onClick={exportExcel}
+        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
+      >
+        <FaFileExcel className="w-4 h-4" />
+        <span>Xuất Excel</span>
+      </button>
+      
+      {/* Sử dụng component ReportPrintButton đã import */}
+      <ReportPrintButton
+        summary={summary}
+        revenueData={revenueData}
+        topCustomers={topCustomers}
+        topServices={topServices}
+        startDate={startDate}
+        endDate={endDate}
+        isLoading={loadingSummary || loadingRevenue || loadingTopCustomers || loadingTopServices}
+        onPrintStart={() => setIsPrinting(true)}
+        onPrintEnd={() => setIsPrinting(false)}
+        variant="primary"
+        size="md"
+        fullWidth={false}
+        disabled={loadingSummary || loadingRevenue || loadingTopCustomers || loadingTopServices}
+      />
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 px-4 py-6 sm:px-6 lg:px-8 space-y-8">
       
@@ -146,12 +175,7 @@ const DashboardReport = () => {
 
       {/* ===== EXPORT BUTTONS ===== */}
       <div className="flex justify-end">
-        <ExportButtons
-          onExportExcel={exportExcel}
-          onExportPDF={exportPDF}
-          onExportOther={exportOther}
-          size="md"
-        />
+        <CustomExportButtons />
       </div>
 
       {/* ===== STATS GRID ===== */}
@@ -313,11 +337,11 @@ const DashboardReport = () => {
               </li>
               <li className="flex items-start gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <span>Xuất báo cáo ra file Excel hoặc PDF để lưu trữ hoặc chia sẻ với đội ngũ quản lý.</span>
+                <span>Xuất báo cáo ra file Excel để lưu trữ hoặc chia sẻ với đội ngũ quản lý.</span>
               </li>
               <li className="flex items-start gap-2">
                 <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <span>Sử dụng biểu đồ để phân tích xu hướng và đưa ra quyết định kinh doanh hiệu quả.</span>
+                <span>Sử dụng tính năng "In báo cáo" để in trực tiếp báo cáo ra giấy với đầy đủ thông tin thống kê.</span>
               </li>
             </ul>
           </div>
@@ -330,11 +354,7 @@ const DashboardReport = () => {
                 <span>Dữ liệu được cập nhật lần cuối: {new Date().toLocaleString('vi-VN')}</span>
               </div>
             </div>
-            <ExportButtons
-              onExportExcel={exportExcel}
-              onExportPDF={exportPDF}
-              size="sm"
-            />
+            <CustomExportButtons />
           </div>
         </div>
       </div>
